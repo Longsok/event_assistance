@@ -125,4 +125,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('guests', GuestController::class)->except(['show']);
 });
 
-require __DIR__.'/auth.php';
+require __DIR__.'/auth.php';    
