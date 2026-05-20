@@ -9,7 +9,10 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+<<<<<<< HEAD
 use App\Http\Controllers\Auth\SocialLoginController;
+=======
+>>>>>>> 7f1e22f2e341e4a9e9bb2a7e5438216ed5625882
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -34,6 +37,7 @@ Route::middleware('guest')->group(function () {
 
     Route::post('reset-password', [NewPasswordController::class, 'store'])
         ->name('password.store');
+<<<<<<< HEAD
 
     Route::get('auth/google', [SocialLoginController::class, 'redirectToGoogle'])
     ->name('auth.google');
@@ -43,6 +47,9 @@ Route::middleware('guest')->group(function () {
     ->name('auth.facebook');
     Route::get('auth/facebook/callback', [SocialLoginController::class, 'handleFacebookCallback']);
     });
+=======
+});
+>>>>>>> 7f1e22f2e341e4a9e9bb2a7e5438216ed5625882
 
 Route::middleware('auth')->group(function () {
     Route::get('verify-email', EmailVerificationPromptController::class)

@@ -114,6 +114,7 @@
         </a>
     </p>
 
+<<<<<<< HEAD
     <div class="mt-4 space-y-2">
     <a href="{{ route('auth.google') }}"
        class="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition">
@@ -126,4 +127,6 @@
     </a>
 </div>
 
+=======
+>>>>>>> 7f1e22f2e341e4a9e9bb2a7e5438216ed5625882
 </x-guest-layout>

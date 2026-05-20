@@ -2,8 +2,12 @@
 
 namespace App\Models;
 
+<<<<<<< HEAD
 use Illuminate\Database\Eloquent\Model;        // ✅ add this
 use Illuminate\Database\Eloquent\SoftDeletes;
+=======
+use Illuminate\Database\Eloquent\Model;
+>>>>>>> 7f1e22f2e341e4a9e9bb2a7e5438216ed5625882
 
 class EventTask extends Model
 {
@@ -34,6 +38,11 @@ class EventTask extends Model
         'is_late'           => 'boolean',
     ];
 
+<<<<<<< HEAD
+=======
+    // ─── Helpers ─────────────────────────────────────────────
+
+>>>>>>> 7f1e22f2e341e4a9e9bb2a7e5438216ed5625882
     public function isDone(): bool
     {
         return $this->status === 'done';
@@ -44,6 +53,11 @@ class EventTask extends Model
         return $this->status === 'overdue' || ($this->due_date->isPast() && !$this->isDone());
     }
 
+<<<<<<< HEAD
+=======
+    // ─── Relationships ───────────────────────────────────────
+
+>>>>>>> 7f1e22f2e341e4a9e9bb2a7e5438216ed5625882
     public function event()
     {
         return $this->belongsTo(Event::class);

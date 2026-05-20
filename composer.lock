@@ -4,6 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
+<<<<<<< HEAD
     "content-hash": "d1586a94777270a5d4fce47d4e8570f3",
     "packages": [
         {
@@ -61,6 +62,11 @@
             "time": "2022-12-07T17:46:57+00:00"
         },
         {
+=======
+    "content-hash": "f9929155660fbb75f1437694af990918",
+    "packages": [
+        {
+>>>>>>> 7f1e22f2e341e4a9e9bb2a7e5438216ed5625882
             "name": "brick/math",
             "version": "0.14.8",
             "source": {
@@ -190,6 +196,7 @@
             "time": "2024-02-09T16:56:22+00:00"
         },
         {
+<<<<<<< HEAD
             "name": "dasprid/enum",
             "version": "1.0.7",
             "source": {
@@ -240,6 +247,8 @@
             "time": "2025-09-16T12:23:56+00:00"
         },
         {
+=======
+>>>>>>> 7f1e22f2e341e4a9e9bb2a7e5438216ed5625882
             "name": "dflydev/dot-access-data",
             "version": "v3.0.3",
             "source": {
@@ -613,6 +622,7 @@
             "time": "2025-03-06T22:45:56+00:00"
         },
         {
+<<<<<<< HEAD
             "name": "firebase/php-jwt",
             "version": "v7.0.5",
             "source": {
@@ -677,6 +687,8 @@
             "time": "2026-04-01T20:38:03+00:00"
         },
         {
+=======
+>>>>>>> 7f1e22f2e341e4a9e9bb2a7e5438216ed5625882
             "name": "fruitcake/php-cors",
             "version": "v1.4.0",
             "source": {
@@ -1566,6 +1578,7 @@
             "time": "2026-04-16T14:03:50+00:00"
         },
         {
+<<<<<<< HEAD
             "name": "laravel/socialite",
             "version": "v5.27.0",
             "source": {
@@ -1638,6 +1651,8 @@
             "time": "2026-04-24T14:05:47+00:00"
         },
         {
+=======
+>>>>>>> 7f1e22f2e341e4a9e9bb2a7e5438216ed5625882
             "name": "laravel/tinker",
             "version": "v3.0.2",
             "source": {
@@ -2084,6 +2099,7 @@
             "time": "2024-09-21T08:32:55+00:00"
         },
         {
+<<<<<<< HEAD
             "name": "league/oauth1-client",
             "version": "v1.11.0",
             "source": {
@@ -2160,6 +2176,8 @@
             "time": "2024-12-10T19:59:05+00:00"
         },
         {
+=======
+>>>>>>> 7f1e22f2e341e4a9e9bb2a7e5438216ed5625882
             "name": "league/uri",
             "version": "7.8.1",
             "source": {
@@ -2929,6 +2947,7 @@
             "time": "2026-02-16T23:10:27+00:00"
         },
         {
+<<<<<<< HEAD
             "name": "paragonie/constant_time_encoding",
             "version": "v3.1.3",
             "source": {
@@ -3048,6 +3067,8 @@
             "time": "2020-10-15T08:29:30+00:00"
         },
         {
+=======
+>>>>>>> 7f1e22f2e341e4a9e9bb2a7e5438216ed5625882
             "name": "phpoption/phpoption",
             "version": "1.9.5",
             "source": {
@@ -3123,6 +3144,7 @@
             "time": "2025-12-27T19:41:33+00:00"
         },
         {
+<<<<<<< HEAD
             "name": "phpseclib/phpseclib",
             "version": "3.0.52",
             "source": {
@@ -3233,6 +3255,8 @@
             "time": "2026-04-27T07:02:15+00:00"
         },
         {
+=======
+>>>>>>> 7f1e22f2e341e4a9e9bb2a7e5438216ed5625882
             "name": "psr/clock",
             "version": "1.0.0",
             "source": {
@@ -3922,6 +3946,7 @@
             "time": "2025-12-14T04:43:48+00:00"
         },
         {
+<<<<<<< HEAD
             "name": "simplesoftwareio/simple-qrcode",
             "version": "4.2.0",
             "source": {
@@ -3990,6 +4015,8 @@
             "time": "2021-02-08T20:43:55+00:00"
         },
         {
+=======
+>>>>>>> 7f1e22f2e341e4a9e9bb2a7e5438216ed5625882
             "name": "spatie/laravel-package-tools",
             "version": "1.93.0",
             "source": {

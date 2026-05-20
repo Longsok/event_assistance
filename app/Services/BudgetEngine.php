@@ -9,8 +9,18 @@ use App\Models\BudgetTemplate;
 
 class BudgetEngine
 {
+<<<<<<< HEAD
     public function generate(Event $event, float $totalBudget): void
     {
+=======
+    /**
+     * Generate budget items for a newly created event.
+     * Called when organizer provides a total budget.
+     */
+    public function generate(Event $event, float $totalBudget): void
+    {
+        // Create the budget record
+>>>>>>> 7f1e22f2e341e4a9e9bb2a7e5438216ed5625882
         $budget = EventBudget::create([
             'event_id'     => $event->id,
             'total_budget' => $totalBudget,
@@ -20,11 +30,23 @@ class BudgetEngine
             ->orderBy('sort_order')
             ->get();
 
+<<<<<<< HEAD
+=======
+        // Filter templates by trigger rules
+>>>>>>> 7f1e22f2e341e4a9e9bb2a7e5438216ed5625882
         $included = $templates->filter(
             fn($t) => $this->passesRules($t->scale_trigger, $event)
         );
 
+<<<<<<< HEAD
         foreach ($included as $template) {
+=======
+        // Calculate total percentage of included items
+        $totalPercent = $included->sum('suggested_percentage');
+
+        foreach ($included as $template) {
+            // Calculate suggested amount from percentage
+>>>>>>> 7f1e22f2e341e4a9e9bb2a7e5438216ed5625882
             $suggestedAmount = ($template->suggested_percentage / 100) * $totalBudget;
 
             EventBudgetItem::create([
@@ -37,8 +59,26 @@ class BudgetEngine
                 'sort_order'       => $template->sort_order,
             ]);
         }
+<<<<<<< HEAD
     }
 
+=======
+
+        // Store unallocated gap info on budget as notes
+        $unallocatedPercent = 100 - $totalPercent;
+        if ($unallocatedPercent > 0) {
+            $unallocatedAmount = ($unallocatedPercent / 100) * $totalBudget;
+            // Organizer will see this as a warning in the UI
+            // The gap is intentional — we show it clearly
+        }
+    }
+
+    /**
+     * Recalculate budget items when total budget changes.
+     * Keeps custom items. Recalculates suggested/allocated
+     * for system items proportionally.
+     */
+>>>>>>> 7f1e22f2e341e4a9e9bb2a7e5438216ed5625882
     public function recalculate(Event $event, float $newTotalBudget): void
     {
         $budget = $event->budget;
@@ -51,6 +91,10 @@ class BudgetEngine
             ->get()
             ->keyBy('line_item');
 
+<<<<<<< HEAD
+=======
+        // Only recalculate system-generated items
+>>>>>>> 7f1e22f2e341e4a9e9bb2a7e5438216ed5625882
         $systemItems = $budget->items()->where('is_custom', false)->get();
 
         foreach ($systemItems as $item) {
@@ -58,7 +102,12 @@ class BudgetEngine
             if (!$template) continue;
 
             $newSuggested = round(
+<<<<<<< HEAD
                 ($template->suggested_percentage / 100) * $newTotalBudget, 2
+=======
+                ($template->suggested_percentage / 100) * $newTotalBudget,
+                2
+>>>>>>> 7f1e22f2e341e4a9e9bb2a7e5438216ed5625882
             );
 
             $item->update([
@@ -68,23 +117,40 @@ class BudgetEngine
         }
     }
 
+<<<<<<< HEAD
+=======
+    /**
+     * Get budget summary for the UI.
+     * Shows total, allocated, actual spent, unallocated gap.
+     */
+>>>>>>> 7f1e22f2e341e4a9e9bb2a7e5438216ed5625882
     public function getSummary(Event $event): array
     {
         $budget = $event->budget()->with('items')->first();
 
         if (!$budget) {
             return [
+<<<<<<< HEAD
                 'has_budget'      => false,
                 'total_budget'    => 0,
                 'total_allocated' => 0,
                 'total_actual'    => 0,
                 'unallocated'     => 0,
                 'over_budget'     => false,
+=======
+                'has_budget'       => false,
+                'total_budget'     => 0,
+                'total_allocated'  => 0,
+                'total_actual'     => 0,
+                'unallocated'      => 0,
+                'over_budget'      => false,
+>>>>>>> 7f1e22f2e341e4a9e9bb2a7e5438216ed5625882
             ];
         }
 
         $totalAllocated = $budget->items->sum('allocated_amount');
         $totalActual    = $budget->items->sum('actual_amount');
+<<<<<<< HEAD
 
         return [
             'has_budget'      => true,
@@ -105,6 +171,46 @@ class BudgetEngine
         if (preg_match('/venue\s*=\s*(\w+)/', $trigger, $m))     return $event->venue_type === $m[1];
         if (preg_match('/meal\s*=\s*(yes|no)/', $trigger, $m))   return $event->meal_provided === ($m[1] === 'yes');
         if (preg_match('/days\s*>\s*(\d+)/', $trigger, $m))      return $event->total_days > (int) $m[1];
+=======
+        $unallocated    = $budget->total_budget - $totalAllocated;
+
+        return [
+            'has_budget'       => true,
+            'total_budget'     => $budget->total_budget,
+            'total_allocated'  => $totalAllocated,
+            'total_actual'     => $totalActual,
+            'unallocated'      => $unallocated,
+            'over_budget'      => $totalActual > $budget->total_budget,
+            'items'            => $budget->items,
+        ];
+    }
+
+    /**
+     * Evaluate scale_trigger rules.
+     */
+    private function passesRules(string $trigger, Event $event): bool
+    {
+        if ($trigger === 'any' || empty($trigger)) {
+            return true;
+        }
+
+        if (preg_match('/capacity\s*>\s*(\d+)/', $trigger, $m)) {
+            return $event->capacity > (int) $m[1];
+        }
+        if (preg_match('/capacity\s*<=\s*(\d+)/', $trigger, $m)) {
+            return $event->capacity <= (int) $m[1];
+        }
+        if (preg_match('/venue\s*=\s*(\w+)/', $trigger, $m)) {
+            return $event->venue_type === $m[1];
+        }
+        if (preg_match('/meal\s*=\s*(yes|no)/', $trigger, $m)) {
+            return $event->meal_provided === ($m[1] === 'yes');
+        }
+        if (preg_match('/days\s*>\s*(\d+)/', $trigger, $m)) {
+            return $event->total_days > (int) $m[1];
+        }
+
+>>>>>>> 7f1e22f2e341e4a9e9bb2a7e5438216ed5625882
         return true;
     }
 }

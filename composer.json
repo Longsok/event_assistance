@@ -8,10 +8,15 @@
     "require": {
         "php": "^8.3",
         "laravel/framework": "^13.0",
+<<<<<<< HEAD
         "laravel/socialite": "^5.27",
         "laravel/tinker": "^3.0",
         "livewire/livewire": "^4.3",
         "simplesoftwareio/simple-qrcode": "^4.2",
+=======
+        "laravel/tinker": "^3.0",
+        "livewire/livewire": "^4.3",
+>>>>>>> 7f1e22f2e341e4a9e9bb2a7e5438216ed5625882
         "spatie/laravel-permission": "^7.4"
     },
     "require-dev": {
