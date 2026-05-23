@@ -4,177 +4,131 @@ namespace App\Services;
 
 use App\Models\Event;
 use App\Models\EventSchedule;
-use App\Models\ScheduleTemplate;
 use Carbon\Carbon;
 
 class ScheduleEngine
 {
-    /**
-     * Generate schedule sessions for a newly created event.
-     */
     public function generate(Event $event): void
     {
-        $templates = ScheduleTemplate::where('category_id', $event->category_id)
+        $templates = $event->category?->scheduleTemplates()
             ->orderBy('sort_order')
             ->get();
 
-        $totalDays    = $event->total_days;
-        $startTime    = $event->start_time
-            ? Carbon::parse($event->start_time)
-            : Carbon::parse('09:00');
-        $endTime      = $event->end_time
-            ? Carbon::parse($event->end_time)
-            : Carbon::parse('18:00');
-        $totalMinutes = $startTime->diffInMinutes($endTime);
+        if (!$templates || $templates->isEmpty()) {
+            return;
+        }
 
-        foreach ($templates as $template) {
-            if (!$this->passesRules($template->scale_trigger, $event)) {
-                continue;
+        $eventStart   = Carbon::parse($event->start_date);
+        $eventEnd     = Carbon::parse($event->end_date);
+        $durationDays = max(1, $eventStart->diffInDays($eventEnd) + 1);
+
+        EventSchedule::where('event_id', $event->id)->delete();
+
+        $capacity     = max(1, (int)($event->capacity ?? 1));
+        $mealProvided = (bool)($event->meal_provided ?? true);
+
+        for ($day = 1; $day <= $durationDays; $day++) {
+            $date     = $eventStart->copy()->addDays($day - 1);
+            $sortBase = ($day - 1) * 100;
+
+            if ($mealProvided) {
+                $this->addDayMealSessions($event, $date, $day, $capacity, $sortBase);
             }
 
-            // Resolve which day(s) this session belongs to
-            $dayAssignments = $this->resolveDays($template, $totalDays);
-
-            foreach ($dayAssignments as $dayNumber) {
-                $scheduleDate = $event->start_date->copy()->addDays($dayNumber - 1);
-
-                [$sessionStart, $sessionEnd] = $this->resolveTime(
+            foreach ($templates as $i => $template) {
+                $dur       = (int)($template->duration_minutes ?? 60);
+                $startTime = $this->resolveTime(
                     $template,
-                    $startTime,
-                    $endTime,
-                    $totalMinutes,
-                    $dayNumber,
-                    $totalDays
+                    $event->start_time ?? '08:00',
+                    $event->end_time   ?? '18:00'
                 );
+                $endTime = $this->addMinutes($startTime, $dur);
 
                 EventSchedule::create([
                     'event_id'         => $event->id,
-                    'day_number'       => $dayNumber,
-                    'schedule_date'    => $scheduleDate,
-                    'session_name'     => $template->session_name,
-                    'start_time'       => $sessionStart->format('H:i'),
-                    'end_time'         => $sessionEnd->format('H:i'),
-                    'duration_minutes' => $template->duration_minutes,
-                    'is_break'         => $template->is_break,
-                    'is_custom'        => false,
-                    'sort_order'       => $template->sort_order,
+                    'day_number'       => $day,
+                    'schedule_date'    => $date->toDateString(),
+                    'session_name'     => $durationDays > 1
+                        ? "Day {$day}: {$template->session_name}"
+                        : $template->session_name,
+                    'start_time'       => $startTime,
+                    'end_time'         => $endTime,
+                    'duration_minutes' => $dur,
+                    'speaker'          => $template->speaker ?? null,
+                    'location'         => $template->location ?? null,
+                    'sort_order'       => $sortBase + ($template->sort_order ?? $i),
                 ]);
             }
         }
     }
 
-    /**
-     * Recalculate schedules when event dates change.
-     * Only recalculates system-generated sessions.
-     */
-    public function recalculate(Event $event): void
-    {
-        // Remove old system-generated schedules
-        EventSchedule::where('event_id', $event->id)
-            ->where('is_custom', false)
-            ->delete();
+    protected function addDayMealSessions(
+        Event $event,
+        Carbon $date,
+        int $day,
+        int $capacity,
+        int $sortBase
+    ): void {
+        $meals = [
+            ['session_name' => 'Breakfast',   'start' => '07:30', 'duration' => 45,  'sort' => 1],
+            ['session_name' => 'Lunch Break', 'start' => '12:00', 'duration' => 60,  'sort' => 40],
+            ['session_name' => 'Dinner',      'start' => '18:00', 'duration' => 90,  'sort' => 80],
+        ];
 
-        // Regenerate from templates
-        $this->generate($event);
-    }
-
-    /**
-     * Resolve which day numbers a session applies to.
-     */
-    private function resolveDays(ScheduleTemplate $template, int $totalDays): array
-    {
-        return match ($template->anchor) {
-            'start'        => [1],
-            'end'          => [$totalDays],
-            'middle'       => [(int) ceil($totalDays / 2)],
-            'proportional' => $this->distributeAcrossDays($template, $totalDays),
-            default        => [1],
-        };
-    }
-
-    /**
-     * Distribute proportional sessions across all days.
-     */
-    private function distributeAcrossDays(ScheduleTemplate $template, int $totalDays): array
-    {
-        if ($totalDays === 1) {
-            return [1];
+        foreach ($meals as $meal) {
+            EventSchedule::create([
+                'event_id'         => $event->id,
+                'day_number'       => $day,
+                'schedule_date'    => $date->toDateString(),
+                'session_name'     => "Day {$day}: {$meal['session_name']} ({$capacity} guests)",
+                'start_time'       => $meal['start'],
+                'end_time'         => $this->addMinutes($meal['start'], $meal['duration']),
+                'duration_minutes' => $meal['duration'],
+                'speaker'          => null,
+                'location'         => 'Dining Area',
+                'sort_order'       => $sortBase + $meal['sort'],
+            ]);
         }
-
-        // For multi-day events distribute middle sessions
-        // Skip day 1 (opening) and last day (closing) for proportional
-        $middleDays = range(2, $totalDays - 1);
-
-        if (empty($middleDays)) {
-            return [1];
-        }
-
-        // Assign one session per middle day
-        return $middleDays;
     }
 
-    /**
-     * Resolve start and end time for a session.
-     */
-    private function resolveTime(
-        ScheduleTemplate $template,
-        Carbon $dayStart,
-        Carbon $dayEnd,
-        int $totalMinutes,
-        int $dayNumber,
-        int $totalDays
-    ): array {
-        $sessionStart = match ($template->anchor) {
-            'start' =>
-                $dayStart->copy()->addMinutes($template->offset_minutes),
+    protected function resolveTime(
+        $template,
+        string $eventStart,
+        string $eventEnd
+    ): string {
+        $anchor      = $template->anchor ?? 'start';
+        $offset      = (int)($template->offset_minutes ?? 0);
+        $duration    = (int)($template->duration_minutes ?? 60);
+        $positionPct = (int)($template->position_percent ?? 50);
 
-            'end' =>
-                $dayEnd->copy()
-                    ->subMinutes($template->duration_minutes)
-                    ->addMinutes($template->offset_minutes),
+        $startMin = $this->timeToMinutes($eventStart);
+        $endMin   = $this->timeToMinutes($eventEnd);
+        $dayMin   = max(1, $endMin - $startMin);
 
-            'middle' =>
-                $dayStart->copy()
-                    ->addMinutes((int) ($totalMinutes / 2))
-                    ->addMinutes($template->offset_minutes),
-
-            'proportional' =>
-                $dayStart->copy()
-                    ->addMinutes($template->offset_minutes),
-
-            default => $dayStart->copy(),
+        $resolved = match ($anchor) {
+            'start'        => $startMin + $offset,
+            'end'          => $endMin - $duration - $offset,
+            'middle'       => $startMin + (int)($dayMin / 2),
+            'proportional' => $startMin + (int)($dayMin * $positionPct / 100),
+            default        => $startMin + $offset,
         };
 
-        $sessionEnd = $sessionStart->copy()->addMinutes($template->duration_minutes);
-
-        return [$sessionStart, $sessionEnd];
+        return $this->minutesToTime(max(0, $resolved));
     }
 
-    /**
-     * Evaluate scale_trigger rules — same logic as TimelineEngine.
-     */
-    private function passesRules(string $trigger, Event $event): bool
+    protected function timeToMinutes(string $time): int
     {
-        if ($trigger === 'any' || empty($trigger)) {
-            return true;
-        }
+        [$h, $m] = explode(':', $time . ':00');
+        return ((int)$h) * 60 + ((int)$m);
+    }
 
-        if (preg_match('/capacity\s*>\s*(\d+)/', $trigger, $m)) {
-            return $event->capacity > (int) $m[1];
-        }
-        if (preg_match('/capacity\s*<=\s*(\d+)/', $trigger, $m)) {
-            return $event->capacity <= (int) $m[1];
-        }
-        if (preg_match('/venue\s*=\s*(\w+)/', $trigger, $m)) {
-            return $event->venue_type === $m[1];
-        }
-        if (preg_match('/meal\s*=\s*(yes|no)/', $trigger, $m)) {
-            return $event->meal_provided === ($m[1] === 'yes');
-        }
-        if (preg_match('/days\s*>\s*(\d+)/', $trigger, $m)) {
-            return $event->total_days > (int) $m[1];
-        }
+    protected function minutesToTime(int $minutes): string
+    {
+        return sprintf('%02d:%02d', intdiv($minutes, 60) % 24, $minutes % 60);
+    }
 
-        return true;
+    protected function addMinutes(string $time, int $add): string
+    {
+        return $this->minutesToTime($this->timeToMinutes($time) + $add);
     }
 }

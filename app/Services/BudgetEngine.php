@@ -5,106 +5,231 @@ namespace App\Services;
 use App\Models\Event;
 use App\Models\EventBudget;
 use App\Models\EventBudgetItem;
-use App\Models\BudgetTemplate;
+use Carbon\Carbon;
 
 class BudgetEngine
 {
-    public function generate(Event $event, float $totalBudget): void
+    /**
+     * Meal cost estimates per guest (in local currency).
+     * Adjustable here or in config.
+     */
+    protected array $mealCosts = [
+        'breakfast' => 5,
+        'lunch'     => 10,
+        'dinner'    => 15,
+    ];
+
+    /**
+     * Per-day staff/operational cost estimate.
+     */
+    protected int $staffCostPerDay = 200;
+
+    /**
+     * Generate a budget for the event based on:
+     * - Category templates (percentage-based line items)
+     * - Number of days × guests × meal costs
+     * - Venue type adjustments
+     */
+    public function generate(Event $event): void
     {
-        $budget = EventBudget::create([
-            'event_id'     => $event->id,
-            'total_budget' => $totalBudget,
-        ]);
+        $templates = $event->category?->budgetTemplates()->get();
 
-        $templates = BudgetTemplate::where('category_id', $event->category_id)
-            ->orderBy('sort_order')
-            ->get();
+        if (!$templates || $templates->isEmpty()) {
+            return;
+        }
 
-        $included = $templates->filter(
-            fn($t) => $this->passesRules($t->scale_trigger, $event)
+        // Get or create the event's budget record
+        $budget = EventBudget::firstOrCreate(
+            ['event_id' => $event->id],
+            ['total_budget' => $event->total_budget ?? 0]
         );
 
-        foreach ($included as $template) {
-            $suggestedAmount = ($template->suggested_percentage / 100) * $totalBudget;
+        // If a total budget was already set by the organizer, use it.
+        // Otherwise estimate it from guests + days.
+        $totalBudget = (float)($budget->total_budget);
+        if ($totalBudget <= 0) {
+            $totalBudget = $this->estimateTotalBudget($event);
+            $budget->update(['total_budget' => $totalBudget]);
+        }
+
+        // Delete existing auto-generated items before regenerating
+        $budget->items()->where('is_custom', false)->delete();
+
+        foreach ($templates as $template) {
+            if (!$this->passesTrigger($template, $event)) {
+                continue;
+            }
+
+            $percentage    = (float)($template->suggested_percentage ?? 0);
+            $baseSuggested = round($totalBudget * $percentage / 100, 2);
+
+            // Scale some line items by days or guests
+            $scaledAmount = $this->scaleAmount(
+                $template->line_item,
+                $baseSuggested,
+                $event
+            );
 
             EventBudgetItem::create([
                 'event_budget_id'  => $budget->id,
                 'line_item'        => $template->line_item,
-                'suggested_amount' => round($suggestedAmount, 2),
-                'allocated_amount' => round($suggestedAmount, 2),
+                'suggested_amount' => $scaledAmount,
+                'allocated_amount' => $scaledAmount,
                 'actual_amount'    => 0,
                 'is_custom'        => false,
-                'sort_order'       => $template->sort_order,
+                'sort_order'       => $template->sort_order ?? 0,
+            ]);
+        }
+
+        // Add auto-generated meal budget items for multi-day events
+        $durationDays = $this->getEventDuration($event);
+        $capacity     = max(1, (int)($event->capacity ?? 1));
+
+        if ($durationDays > 1) {
+            $this->addMealItems($budget, $event, $durationDays, $capacity);
+        }
+
+        // Add per-day operational cost item if multi-day
+        if ($durationDays > 1) {
+            $staffTotal = $this->staffCostPerDay * $durationDays;
+            EventBudgetItem::create([
+                'event_budget_id'  => $budget->id,
+                'line_item'        => "Staff & Operations ({$durationDays} days)",
+                'suggested_amount' => $staffTotal,
+                'allocated_amount' => $staffTotal,
+                'actual_amount'    => 0,
+                'is_custom'        => false,
+                'sort_order'       => 90,
             ]);
         }
     }
 
-    public function recalculate(Event $event, float $newTotalBudget): void
+    /**
+     * Estimate a reasonable total budget when the organizer hasn't set one.
+     *
+     * Formula:
+     *   base = capacity × perGuestBase × durationDays × venueMultiplier
+     */
+    protected function estimateTotalBudget(Event $event): float
     {
-        $budget = $event->budget;
-        if (!$budget) return;
+        $capacity    = max(1, (int)($event->capacity ?? 50));
+        $duration    = max(1, $this->getEventDuration($event));
+        $perGuest    = 50; // base $50 per guest per day
 
-        $budget->update(['total_budget' => $newTotalBudget]);
+        // Venue type multiplier
+        $venueMultiplier = match (strtolower($event->venue_type ?? 'indoor')) {
+            'outdoor' => 1.3,
+            'hybrid'  => 1.5,
+            default   => 1.0, // indoor
+        };
 
-        $templates = BudgetTemplate::where('category_id', $event->category_id)
-            ->orderBy('sort_order')
-            ->get()
-            ->keyBy('line_item');
+        // Event duration multiplier (discount for very long events)
+        $durationMultiplier = match (true) {
+            $duration <= 1  => 1.0,
+            $duration <= 3  => 0.95,
+            $duration <= 7  => 0.85,
+            default         => 0.75,
+        };
 
-        $systemItems = $budget->items()->where('is_custom', false)->get();
+        return round(
+            $capacity * $perGuest * $duration * $venueMultiplier * $durationMultiplier,
+            -2  // round to nearest 100
+        );
+    }
 
-        foreach ($systemItems as $item) {
-            $template = $templates->get($item->line_item);
-            if (!$template) continue;
+    /**
+     * Scale a budget line item by days or guests where appropriate.
+     * Catering, Meals, Accommodation scale; fixed costs like Venue don't.
+     */
+    protected function scaleAmount(string $lineItem, float $baseAmount, Event $event): float
+    {
+        $duration = $this->getEventDuration($event);
+        $capacity = max(1, (int)($event->capacity ?? 1));
+        $lower    = strtolower($lineItem);
 
-            $newSuggested = round(
-                ($template->suggested_percentage / 100) * $newTotalBudget, 2
-            );
+        $scalesWithDays = str_contains($lower, 'catering')
+            || str_contains($lower, 'meal')
+            || str_contains($lower, 'food')
+            || str_contains($lower, 'accommodation')
+            || str_contains($lower, 'hotel')
+            || str_contains($lower, 'staff')
+            || str_contains($lower, 'security');
 
-            $item->update([
-                'suggested_amount' => $newSuggested,
-                'allocated_amount' => $newSuggested,
+        if ($scalesWithDays && $duration > 1) {
+            // Scale proportionally (but don't just multiply — use sqrt to dampen)
+            return round($baseAmount * sqrt($duration), 2);
+        }
+
+        return round($baseAmount, 2);
+    }
+
+    /**
+     * Add individual meal line items for each meal type per day.
+     * Breakfast: $5/guest, Lunch: $10/guest, Dinner: $15/guest
+     */
+    protected function addMealItems(
+        EventBudget $budget,
+        Event $event,
+        int $durationDays,
+        int $capacity
+    ): void {
+        $mealProvided = (bool)($event->meal_provided ?? true);
+        if (!$mealProvided) return;
+
+        $sort = 50;
+        foreach ($this->mealCosts as $meal => $costPerGuest) {
+            $total = $costPerGuest * $capacity * $durationDays;
+            EventBudgetItem::create([
+                'event_budget_id'  => $budget->id,
+                'line_item'        => ucfirst($meal) . " ({$capacity} guests × {$durationDays} days × \${$costPerGuest})",
+                'suggested_amount' => $total,
+                'allocated_amount' => $total,
+                'actual_amount'    => 0,
+                'is_custom'        => false,
+                'sort_order'       => $sort++,
             ]);
         }
     }
 
-    public function getSummary(Event $event): array
+    /**
+     * Get event duration in days (inclusive).
+     */
+    protected function getEventDuration(Event $event): int
     {
-        $budget = $event->budget()->with('items')->first();
-
-        if (!$budget) {
-            return [
-                'has_budget'      => false,
-                'total_budget'    => 0,
-                'total_allocated' => 0,
-                'total_actual'    => 0,
-                'unallocated'     => 0,
-                'over_budget'     => false,
-            ];
-        }
-
-        $totalAllocated = $budget->items->sum('allocated_amount');
-        $totalActual    = $budget->items->sum('actual_amount');
-
-        return [
-            'has_budget'      => true,
-            'total_budget'    => $budget->total_budget,
-            'total_allocated' => $totalAllocated,
-            'total_actual'    => $totalActual,
-            'unallocated'     => $budget->total_budget - $totalAllocated,
-            'over_budget'     => $totalActual > $budget->total_budget,
-            'items'           => $budget->items,
-        ];
+        $start = Carbon::parse($event->start_date);
+        $end   = Carbon::parse($event->end_date);
+        return max(1, $start->diffInDays($end) + 1);
     }
 
-    private function passesRules(string $trigger, Event $event): bool
+    /**
+     * Check scale_trigger conditions (same logic as TimelineEngine).
+     */
+    protected function passesTrigger($template, Event $event): bool
     {
-        if ($trigger === 'any' || empty($trigger)) return true;
-        if (preg_match('/capacity\s*>\s*(\d+)/', $trigger, $m))  return $event->capacity > (int) $m[1];
-        if (preg_match('/capacity\s*<=\s*(\d+)/', $trigger, $m)) return $event->capacity <= (int) $m[1];
-        if (preg_match('/venue\s*=\s*(\w+)/', $trigger, $m))     return $event->venue_type === $m[1];
-        if (preg_match('/meal\s*=\s*(yes|no)/', $trigger, $m))   return $event->meal_provided === ($m[1] === 'yes');
-        if (preg_match('/days\s*>\s*(\d+)/', $trigger, $m))      return $event->total_days > (int) $m[1];
+        $trigger = trim($template->scale_trigger ?? 'any');
+        if ($trigger === '' || $trigger === 'any') return true;
+
+        $duration = $this->getEventDuration($event);
+
+        if (preg_match('/^(\w+)\s*(>|<|>=|<=|=|!=)\s*(.+)$/', $trigger, $m)) {
+            [, $field, $op, $value] = $m;
+            $actual = match ($field) {
+                'capacity' => (int)($event->capacity ?? 0),
+                'duration' => $duration,
+                'venue'    => strtolower($event->venue_type ?? ''),
+                default    => null,
+            };
+            if ($actual === null) return true;
+            return match ($op) {
+                '>'  => $actual > (int)$value,
+                '<'  => $actual < (int)$value,
+                '>=' => $actual >= (int)$value,
+                '<=' => $actual <= (int)$value,
+                '='  => (string)$actual === strtolower($value),
+                '!=' => (string)$actual !== strtolower($value),
+                default => true,
+            };
+        }
         return true;
     }
 }

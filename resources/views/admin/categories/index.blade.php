@@ -1,17 +1,11 @@
-<x-admin-layout>
-    <x-slot name="title">Categories</x-slot>
-
+<x-admin-layout title="Categories">
     <div class="flex items-center justify-between mb-6">
         <h2 class="text-xl font-semibold text-white">Event Categories</h2>
-        <a href="{{ route('admin.categories.create') }}"
-           class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm rounded-lg transition">
-            + New Category
-        </a>
+        <a href="{{ route('admin.categories.create') }}" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition">+ New Category</a>
     </div>
-
-    <div class="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+    <div class="rounded-xl border border-gray-800 overflow-hidden" style="background:#111827">
         <table class="w-full text-sm">
-            <thead class="bg-gray-800 text-gray-400 uppercase text-xs">
+            <thead class="text-gray-400 uppercase text-xs border-b border-gray-800" style="background:#1f2937">
                 <tr>
                     <th class="px-6 py-3 text-left">Name</th>
                     <th class="px-6 py-3 text-left">Color</th>
@@ -21,29 +15,27 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-800">
-                @forelse ($categories as $category)
+                @forelse($categories as $cat)
                 <tr class="hover:bg-gray-800/50">
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-3">
-                            <div class="w-3 h-3 rounded-full" style="background:{{ $category->color }}"></div>
-                            <span class="text-white font-medium">{{ $category->name }}</span>
+                            <div class="w-3 h-3 rounded-full" style="background:{{ $cat->color }}"></div>
+                            <span class="text-white font-medium">{{ $cat->name }}</span>
                         </div>
                     </td>
-                    <td class="px-6 py-4 text-gray-400">{{ $category->color }}</td>
-                    <td class="px-6 py-4 text-gray-400">{{ $category->events_count }}</td>
+                    <td class="px-6 py-4 text-gray-400">{{ $cat->color }}</td>
+                    <td class="px-6 py-4 text-gray-400">{{ $cat->events_count ?? 0 }}</td>
                     <td class="px-6 py-4">
-                        <span class="px-2 py-1 rounded text-xs {{ $category->is_active ? 'bg-green-900/40 text-green-400' : 'bg-gray-800 text-gray-500' }}">
-                            {{ $category->is_active ? 'Active' : 'Inactive' }}
+                        <span class="px-2 py-1 rounded text-xs {{ $cat->is_active ? 'bg-emerald-900/40 text-emerald-400' : 'bg-gray-800 text-gray-500' }}">
+                            {{ $cat->is_active ? 'Active' : 'Inactive' }}
                         </span>
                     </td>
                     <td class="px-6 py-4 text-right">
-                        <div class="flex items-center justify-end gap-2">
-                            <a href="{{ route('admin.categories.edit', $category) }}"
-                               class="text-xs px-2 py-1 rounded bg-indigo-900/40 text-indigo-400 hover:bg-indigo-900/70">Edit</a>
-                            <form method="POST" action="{{ route('admin.categories.destroy', $category) }}"
-                                  onsubmit="return confirm('Delete this category?')">
+                        <div class="flex items-center justify-end gap-3">
+                            <a href="{{ route('admin.categories.edit', $cat) }}" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium">Edit</a>
+                            <form method="POST" action="{{ route('admin.categories.destroy', $cat) }}" onsubmit="return confirm('Delete?')">
                                 @csrf @method('DELETE')
-                                <button class="text-xs px-2 py-1 rounded bg-red-900/40 text-red-400 hover:bg-red-900/70">Delete</button>
+                                <button class="text-xs text-red-400 hover:text-red-300 font-medium">Delete</button>
                             </form>
                         </div>
                     </td>

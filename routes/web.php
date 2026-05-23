@@ -27,102 +27,131 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () { return view('welcome'); });
 
+// Public guest routes
 Route::get('/register/{inviteToken}', [GuestRegistrationController::class, 'show'])->name('public.register');
 Route::post('/register/{inviteToken}', [GuestRegistrationController::class, 'store'])->name('public.register.store');
 Route::get('/checkin/{attendanceToken}', [CheckinController::class, 'show'])->name('public.checkin');
 Route::post('/checkin/{attendanceToken}', [CheckinController::class, 'store'])->name('public.checkin.store');
 
+// Admin auth (no auth middleware)
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('login', [AdminAuthController::class, 'showLoginForm'])->name('login');
-    Route::post('login', [AdminAuthController::class, 'login']);
+    Route::post('login', [AdminAuthController::class, 'login'])->name('login.store');
 });
 
+// Admin protected routes
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     Route::post('logout', [AdminAuthController::class, 'logout'])->name('logout');
+
+    // Dashboard
     Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-    Route::get('users', [UserController::class, 'index'])->name('users.index');
-    Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
+    // Users
+    Route::get('users',              [UserController::class, 'index'])->name('users.index');
+    Route::get('users/create',       [UserController::class, 'create'])->name('users.create');
+    Route::post('users',             [UserController::class, 'store'])->name('users.store');
+    Route::get('users/{user}',       [UserController::class, 'show'])->name('users.show');
+    Route::delete('users/{user}',    [UserController::class, 'destroy'])->name('users.destroy');
     Route::patch('users/{user}/promote', [UserController::class, 'promoteToAdmin'])->name('users.promote');
-    Route::patch('users/{user}/demote', [UserController::class, 'demoteToUser'])->name('users.demote');
-    Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+    Route::patch('users/{user}/demote',  [UserController::class, 'demoteToUser'])->name('users.demote');
+    Route::patch('users/{user}/role', [UserController::class, 'setRole'])->name('users.setRole');
 
+    // Events
+    Route::get('events',             [AdminEventController::class, 'index'])->name('events.index');
+    Route::get('events/create',      [AdminEventController::class, 'create'])->name('events.create');
+    Route::post('events',            [AdminEventController::class, 'store'])->name('events.store');
+    Route::get('events/{event}',     [AdminEventController::class, 'show'])->name('events.show');
+    Route::delete('events/{event}',  [AdminEventController::class, 'destroy'])->name('events.destroy');
+
+    // Categories
     Route::resource('categories', CategoryController::class)->except(['show']);
 
-    Route::get('category-templates', [CategoryTemplateController::class, 'index'])->name('category-templates.index');
-    Route::get('category-templates/{category}', [CategoryTemplateController::class, 'show'])->name('category-templates.show');
-    Route::post('category-templates/{category}', [CategoryTemplateController::class, 'store'])->name('category-templates.store');
-    Route::delete('category-templates/{category}/{template}', [CategoryTemplateController::class, 'destroy'])->name('category-templates.destroy');
+    // Category Templates
+    Route::get('category-templates',                         [CategoryTemplateController::class, 'index'])->name('category-templates.index');
+    Route::get('category-templates/{category}',              [CategoryTemplateController::class, 'show'])->name('category-templates.show');
+    Route::post('category-templates/{category}',             [CategoryTemplateController::class, 'store'])->name('category-templates.store');
+    Route::delete('category-templates/{category}/{template}',[CategoryTemplateController::class, 'destroy'])->name('category-templates.destroy');
 
-    Route::get('budget-templates', [BudgetTemplateController::class, 'index'])->name('budget-templates.index');
-    Route::get('budget-templates/{category}', [BudgetTemplateController::class, 'show'])->name('budget-templates.show');
-    Route::post('budget-templates/{category}', [BudgetTemplateController::class, 'store'])->name('budget-templates.store');
-    Route::delete('budget-templates/{category}/{template}', [BudgetTemplateController::class, 'destroy'])->name('budget-templates.destroy');
+    // Budget Templates
+    Route::get('budget-templates',                         [BudgetTemplateController::class, 'index'])->name('budget-templates.index');
+    Route::get('budget-templates/{category}',              [BudgetTemplateController::class, 'show'])->name('budget-templates.show');
+    Route::post('budget-templates/{category}',             [BudgetTemplateController::class, 'store'])->name('budget-templates.store');
+    Route::delete('budget-templates/{category}/{template}',[BudgetTemplateController::class, 'destroy'])->name('budget-templates.destroy');
 
-    Route::get('schedule-templates', [ScheduleTemplateController::class, 'index'])->name('schedule-templates.index');
-    Route::get('schedule-templates/{category}', [ScheduleTemplateController::class, 'show'])->name('schedule-templates.show');
-    Route::post('schedule-templates/{category}', [ScheduleTemplateController::class, 'store'])->name('schedule-templates.store');
-    Route::delete('schedule-templates/{category}/{template}', [ScheduleTemplateController::class, 'destroy'])->name('schedule-templates.destroy');
+    // Schedule Templates
+    Route::get('schedule-templates',                         [ScheduleTemplateController::class, 'index'])->name('schedule-templates.index');
+    Route::get('schedule-templates/{category}',              [ScheduleTemplateController::class, 'show'])->name('schedule-templates.show');
+    Route::post('schedule-templates/{category}',             [ScheduleTemplateController::class, 'store'])->name('schedule-templates.store');
+    Route::delete('schedule-templates/{category}/{template}',[ScheduleTemplateController::class, 'destroy'])->name('schedule-templates.destroy');
 
+    // Task Groups
     Route::resource('task-groups', TaskGroupController::class)->except(['show']);
-
-    Route::get('events', [AdminEventController::class, 'index'])->name('events.index');
-    Route::get('events/{event}', [AdminEventController::class, 'show'])->name('events.show');
 });
 
+// Organizer protected routes
 Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile',    [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile',  [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    // Events
     Route::resource('events', EventController::class);
     Route::patch('events/{event}/status', [EventController::class, 'updateStatus'])->name('events.status');
 
-    Route::get('events/{event}/guests', [EventGuestController::class, 'index'])->name('events.guests.index');
-    Route::post('events/{event}/guests', [EventGuestController::class, 'store'])->name('events.guests.store');
-    Route::patch('events/{event}/guests/{eventGuest}', [EventGuestController::class, 'update'])->name('events.guests.update');
-    Route::delete('events/{event}/guests/{eventGuest}', [EventGuestController::class, 'destroy'])->name('events.guests.destroy');
+    // Event Guests
+    Route::get('events/{event}/guests',                      [EventGuestController::class, 'index'])->name('events.guests.index');
+    Route::post('events/{event}/guests',                     [EventGuestController::class, 'store'])->name('events.guests.store');
+    Route::patch('events/{event}/guests/{eventGuest}',       [EventGuestController::class, 'update'])->name('events.guests.update');
+    Route::delete('events/{event}/guests/{eventGuest}',      [EventGuestController::class, 'destroy'])->name('events.guests.destroy');
 
-    Route::get('events/{event}/tasks', [EventTaskController::class, 'index'])->name('events.tasks.index');
-    Route::post('events/{event}/tasks', [EventTaskController::class, 'store'])->name('events.tasks.store');
-    Route::patch('events/{event}/tasks/{task}', [EventTaskController::class, 'update'])->name('events.tasks.update');
-    Route::patch('events/{event}/tasks/{task}/complete', [EventTaskController::class, 'complete'])->name('events.tasks.complete');
-    Route::patch('events/{event}/tasks/{task}/reopen', [EventTaskController::class, 'reopen'])->name('events.tasks.reopen');
-    Route::delete('events/{event}/tasks/{task}', [EventTaskController::class, 'destroy'])->name('events.tasks.destroy');
-    Route::post('events/{event}/tasks/reorder', [EventTaskController::class, 'reorder'])->name('events.tasks.reorder');
+    // Event Tasks
+    Route::get('events/{event}/tasks',                       [EventTaskController::class, 'index'])->name('events.tasks.index');
+    Route::post('events/{event}/tasks',                      [EventTaskController::class, 'store'])->name('events.tasks.store');
+    Route::patch('events/{event}/tasks/{task}',              [EventTaskController::class, 'update'])->name('events.tasks.update');
+    Route::patch('events/{event}/tasks/{task}/complete',     [EventTaskController::class, 'complete'])->name('events.tasks.complete');
+    Route::patch('events/{event}/tasks/{task}/reopen',       [EventTaskController::class, 'reopen'])->name('events.tasks.reopen');
+    Route::delete('events/{event}/tasks/{task}',             [EventTaskController::class, 'destroy'])->name('events.tasks.destroy');
+    Route::post('events/{event}/tasks/reorder',              [EventTaskController::class, 'reorder'])->name('events.tasks.reorder');
 
-    Route::get('events/{event}/schedule', [EventScheduleController::class, 'index'])->name('events.schedule.index');
-    Route::post('events/{event}/schedule', [EventScheduleController::class, 'store'])->name('events.schedule.store');
-    Route::patch('events/{event}/schedule/{schedule}', [EventScheduleController::class, 'update'])->name('events.schedule.update');
-    Route::delete('events/{event}/schedule/{schedule}', [EventScheduleController::class, 'destroy'])->name('events.schedule.destroy');
+    // Event Schedule
+    Route::get('events/{event}/schedule',                    [EventScheduleController::class, 'index'])->name('events.schedule.index');
+    Route::post('events/{event}/schedule',                   [EventScheduleController::class, 'store'])->name('events.schedule.store');
+    Route::patch('events/{event}/schedule/{schedule}',       [EventScheduleController::class, 'update'])->name('events.schedule.update');
+    Route::delete('events/{event}/schedule/{schedule}',      [EventScheduleController::class, 'destroy'])->name('events.schedule.destroy');
 
-    Route::get('events/{event}/budget', [EventBudgetController::class, 'index'])->name('events.budget.index');
-    Route::patch('events/{event}/budget', [EventBudgetController::class, 'updateTotal'])->name('events.budget.update');
-    Route::post('events/{event}/budget/items', [EventBudgetController::class, 'storeItem'])->name('events.budget.items.store');
-    Route::patch('events/{event}/budget/items/{item}', [EventBudgetController::class, 'updateItem'])->name('events.budget.items.update');
-    Route::delete('events/{event}/budget/items/{item}', [EventBudgetController::class, 'destroyItem'])->name('events.budget.items.destroy');
+    // Event Budget
+    Route::get('events/{event}/budget',                      [EventBudgetController::class, 'index'])->name('events.budget.index');
+    Route::patch('events/{event}/budget',                    [EventBudgetController::class, 'updateTotal'])->name('events.budget.update');
+    Route::post('events/{event}/budget/items',               [EventBudgetController::class, 'storeItem'])->name('events.budget.items.store');
+    Route::patch('events/{event}/budget/items/{item}',       [EventBudgetController::class, 'updateItem'])->name('events.budget.items.update');
+    Route::delete('events/{event}/budget/items/{item}',      [EventBudgetController::class, 'destroyItem'])->name('events.budget.items.destroy');
 
-    Route::get('events/{event}/contributions', [ContributionController::class, 'index'])->name('events.contributions.index');
-    Route::post('events/{event}/contributions', [ContributionController::class, 'store'])->name('events.contributions.store');
+    // Contributions
+    Route::get('events/{event}/contributions',               [ContributionController::class, 'index'])->name('events.contributions.index');
+    Route::post('events/{event}/contributions',              [ContributionController::class, 'store'])->name('events.contributions.store');
     Route::patch('events/{event}/contributions/{contribution}', [ContributionController::class, 'update'])->name('events.contributions.update');
-    Route::delete('events/{event}/contributions/{contribution}', [ContributionController::class, 'destroy'])->name('events.contributions.destroy');
+    Route::delete('events/{event}/contributions/{contribution}',[ContributionController::class, 'destroy'])->name('events.contributions.destroy');
 
-    Route::get('events/{event}/attendance', [AttendanceController::class, 'index'])->name('events.attendance.index');
-    Route::post('events/{event}/attendance/start', [AttendanceController::class, 'startCheckin'])->name('events.attendance.start');
-    Route::post('events/{event}/attendance/stop', [AttendanceController::class, 'stopCheckin'])->name('events.attendance.stop');
-    Route::post('events/{event}/attendance/manual', [AttendanceController::class, 'manualCheckin'])->name('events.attendance.manual');
+    // Attendance
+    Route::get('events/{event}/attendance',                  [AttendanceController::class, 'index'])->name('events.attendance.index');
+    Route::post('events/{event}/attendance/start',           [AttendanceController::class, 'startCheckin'])->name('events.attendance.start');
+    Route::post('events/{event}/attendance/stop',            [AttendanceController::class, 'stopCheckin'])->name('events.attendance.stop');
+    Route::post('events/{event}/attendance/manual',          [AttendanceController::class, 'manualCheckin'])->name('events.attendance.manual');
 
-    Route::get('events/{event}/invite', [InviteCardController::class, 'show'])->name('events.invite.show');
-    Route::patch('events/{event}/invite', [InviteCardController::class, 'update'])->name('events.invite.update');
-    Route::get('events/{event}/invite/link', [InviteCardController::class, 'getInviteLink'])->name('events.invite.link');
+    // Invite Card
+    Route::get('events/{event}/invite',                      [InviteCardController::class, 'show'])->name('events.invite.show');
+    Route::patch('events/{event}/invite',                    [InviteCardController::class, 'update'])->name('events.invite.update');
+    Route::get('events/{event}/invite/link',                 [InviteCardController::class, 'getInviteLink'])->name('events.invite.link');
 
-    Route::get('events/{event}/complete', [EventCompletionController::class, 'show'])->name('events.completion.show');
-    Route::post('events/{event}/complete', [EventCompletionController::class, 'store'])->name('events.completion.store');
+    // Event Completion
+    Route::get('events/{event}/complete',                    [EventCompletionController::class, 'show'])->name('events.completion.show');
+    Route::post('events/{event}/complete',                   [EventCompletionController::class, 'store'])->name('events.completion.store');
 
+    // Guest Book
     Route::resource('guests', GuestController::class)->except(['show']);
 });
 
-require __DIR__.'/auth.php';    
+require __DIR__.'/auth.php';

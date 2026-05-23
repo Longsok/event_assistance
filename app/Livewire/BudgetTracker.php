@@ -3,41 +3,74 @@
 namespace App\Livewire;
 
 use App\Models\Event;
-use App\Models\EventBudgetItem;
-use App\Services\BudgetEngine;
+use App\Models\EventBudget;
 use Livewire\Component;
 
 class BudgetTracker extends Component
 {
-    public Event  $event;
-    public array  $summary = [];
+    public Event $event;
 
     public function mount(Event $event): void
     {
         $this->event = $event;
-        $this->loadSummary();
     }
 
-    public function loadSummary(): void
+    public function updateActual(int $itemId, $value): void
     {
-        $this->summary = app(BudgetEngine::class)->getSummary($this->event);
+        $budget = EventBudget::where('event_id', $this->event->id)->first();
+        if (!$budget) return;
+
+        $item = $budget->items()->find($itemId);
+        if (!$item) return;
+
+        $item->update(['actual_amount' => max(0, (float)$value)]);
     }
 
-    /**
-     * Update actual amount spent on a budget item inline.
-     */
-    public function updateActual(int $itemId, float $amount): void
+    protected function getBudgetData(): array
     {
-        $item = EventBudgetItem::findOrFail($itemId);
-        $item->update(['actual_amount' => max(0, $amount)]);
-        $this->loadSummary();
+        $budget = EventBudget::with('items')
+            ->where('event_id', $this->event->id)
+            ->first();
+
+        if (!$budget) {
+            return [
+                'budget'  => null,
+                'summary' => [
+                    'has_budget'      => false,
+                    'total_budget'    => 0,
+                    'total_allocated' => 0,
+                    'total_actual'    => 0,
+                    'unallocated'     => 0,
+                    'over_budget'     => false,
+                ],
+            ];
+        }
+
+        $totalBudget    = (float)$budget->total_budget;
+        $totalAllocated = (float)$budget->items->sum('allocated_amount');
+        $totalActual    = (float)$budget->items->sum('actual_amount');
+        $unallocated    = $totalBudget - $totalActual;
+
+        return [
+            'budget'  => $budget,
+            'summary' => [
+                'has_budget'      => true,
+                'total_budget'    => $totalBudget,
+                'total_allocated' => $totalAllocated,
+                'total_actual'    => $totalActual,
+                'unallocated'     => $unallocated,
+                'over_budget'     => $totalActual > $totalBudget,
+            ],
+        ];
     }
 
     public function render()
     {
+        $data = $this->getBudgetData();
+
         return view('livewire.budget-tracker', [
-            'budget'  => $this->event->budget()->with('items')->first(),
-            'summary' => $this->summary,
+            'budget'  => $data['budget'],
+            'summary' => $data['summary'],
         ]);
     }
 }
