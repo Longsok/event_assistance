@@ -7,7 +7,6 @@ use App\Models\Event;
 use App\Models\User;
 use App\Models\Guest;
 use App\Models\EventCategory;
-use Illuminate\Http\Request;
 
 class AdminDashboardController extends Controller
 {
@@ -20,20 +19,24 @@ class AdminDashboardController extends Controller
             'ongoing_events' => Event::where('status', 'ongoing')->count(),
         ];
 
-        $recentEvents    = Event::with(['user', 'category'])->latest()->take(10)->get();
-        $recentUsers     = User::latest()->take(7)->get();
-        $eventByCategory = EventCategory::withCount('events')->having('events_count', '>', 0)->get();
-        $recentActivity  = $this->getRecentActivity();
+        $recentEvents = Event::with(['user', 'category'])
+            ->latest()
+            ->take(10)
+            ->get();
 
-        $tamplateSummary = EventCategory::with([
-            'categoryTemplates',
-            'scheduleTemplates',
-            'budgetTemplates',
-        ])->withCount([
+        $recentUsers = User::latest()->take(7)->get();
+
+        $eventByCategory = EventCategory::withCount('events')
+            ->get()
+            ->filter(fn($c) => $c->events_count > 0);
+
+        $tamplateSummary = EventCategory::withCount([
             'categoryTemplates',
             'scheduleTemplates',
             'budgetTemplates',
         ])->get();
+
+        $recentActivity = $this->getRecentActivity();
 
         return view('admin.dashboard', compact(
             'stat',
@@ -47,20 +50,20 @@ class AdminDashboardController extends Controller
 
     private function getRecentActivity(): array
     {
-        $event = Event::with('user')->latest()->take(5)->get()->map(fn($e) => [
-    'type'    => 'Event Created',
-    'message' => ($e->user?->name ?? 'Unknown') . " created {$e->title}",
-    'time'    => $e->created_at,
-]);
+        $events = Event::with('user')->latest()->take(5)->get()->map(fn($e) => [
+            'type'    => 'Event Created',
+            'message' => ($e->user?->name ?? 'Unknown') . " created {$e->title}",
+            'time'    => $e->created_at,
+        ]);
 
-        $user = User::latest()->take(5)->get()->map(fn($u) => [
+        $users = User::latest()->take(5)->get()->map(fn($u) => [
             'type'    => 'User Registered',
-            'message' => "new user {$u->name} registered",
+            'message' => "New user {$u->name} registered",
             'time'    => $u->created_at,
         ]);
 
-        return collect($event)
-            ->merge($user)
+        return collect($events)
+            ->merge($users)
             ->sortByDesc('time')
             ->take(10)
             ->values()
