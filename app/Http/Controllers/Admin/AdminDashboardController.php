@@ -48,10 +48,10 @@ class AdminDashboardController extends Controller
     private function getRecentActivity(): array
     {
         $event = Event::with('user')->latest()->take(5)->get()->map(fn($e) => [
-            'type'    => 'Event Created',
-            'message' => "{$e->user->name} created {$e->title}",
-            'time'    => $e->created_at,
-        ]);
+    'type'    => 'Event Created',
+    'message' => ($e->user?->name ?? 'Unknown') . " created {$e->title}",
+    'time'    => $e->created_at,
+]);
 
         $user = User::latest()->take(5)->get()->map(fn($u) => [
             'type'    => 'User Registered',
