@@ -3,47 +3,46 @@
 
     {{-- Summary cards --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div class="bg-white rounded-2xl border border-slate-200 p-4">
-            <p class="text-xs text-slate-500 mb-1">Total Budget</p>
-            <p class="text-xl font-bold text-slate-900">${{ number_format($summary['total_budget'], 0) }}</p>
+        <div class="rounded-2xl border p-4" style="background:#0d1117;border-color:rgba(255,255,255,.07)">
+            <p class="text-xs mb-1" style="color:#6b7280">Total Budget</p>
+            <p class="text-xl font-bold text-white">${{ number_format($summary['total_budget'], 0) }}</p>
         </div>
-        <div class="bg-white rounded-2xl border border-slate-200 p-4">
-            <p class="text-xs text-slate-500 mb-1">Allocated</p>
-            <p class="text-xl font-bold text-indigo-600">${{ number_format($summary['total_allocated'], 0) }}</p>
+        <div class="rounded-2xl border p-4" style="background:#0d1117;border-color:rgba(99,102,241,.2)">
+            <p class="text-xs mb-1" style="color:#6b7280">Allocated</p>
+            <p class="text-xl font-bold" style="color:#818cf8">${{ number_format($summary['total_allocated'], 0) }}</p>
         </div>
-        <div class="bg-white rounded-2xl border border-slate-200 p-4">
-            <p class="text-xs text-slate-500 mb-1">Spent So Far</p>
-            <p class="text-xl font-bold {{ $summary['over_budget'] ? 'text-red-600' : 'text-emerald-600' }}">
+        <div class="rounded-2xl border p-4" style="background:#0d1117;border-color:{{ $summary['over_budget'] ? 'rgba(239,68,68,.3)' : 'rgba(52,211,153,.2)' }}">
+            <p class="text-xs mb-1" style="color:#6b7280">Spent So Far</p>
+            <p class="text-xl font-bold" style="color:{{ $summary['over_budget'] ? '#f87171' : '#34d399' }}">
                 ${{ number_format($summary['total_actual'], 0) }}
             </p>
         </div>
-        <div class="bg-white rounded-2xl border border-slate-200 p-4">
-            <p class="text-xs text-slate-500 mb-1">Remaining</p>
-            <p class="text-xl font-bold {{ $summary['unallocated'] < 0 ? 'text-red-600' : 'text-slate-700' }}">
+        <div class="rounded-2xl border p-4" style="background:#0d1117;border-color:rgba(255,255,255,.07)">
+            <p class="text-xs mb-1" style="color:#6b7280">Remaining</p>
+            <p class="text-xl font-bold" style="color:{{ $summary['unallocated'] < 0 ? '#f87171' : 'white' }}">
                 {{ $summary['unallocated'] < 0 ? '-' : '' }}${{ number_format(abs($summary['unallocated']), 0) }}
             </p>
         </div>
     </div>
 
-    {{-- Overall progress bar --}}
+    {{-- Overall progress --}}
     @php
         $spentPct = $summary['total_budget'] > 0
             ? min(100, round(($summary['total_actual'] / $summary['total_budget']) * 100))
             : 0;
     @endphp
-    <div class="bg-white rounded-2xl border border-slate-200 px-5 py-4">
+    <div class="rounded-2xl border px-5 py-4" style="background:#0d1117;border-color:rgba(255,255,255,.07)">
         <div class="flex items-center justify-between mb-2">
-            <p class="text-sm font-medium text-slate-700">Overall Spending</p>
-            <p class="text-sm font-bold {{ $spentPct >= 90 ? 'text-red-600' : ($spentPct >= 70 ? 'text-amber-600' : 'text-emerald-600') }}">
+            <p class="text-sm font-medium text-white">Overall Spending</p>
+            <p class="text-sm font-bold" style="color:{{ $spentPct >= 90 ? '#f87171' : ($spentPct >= 70 ? '#fbbf24' : '#34d399') }}">
                 {{ $spentPct }}% used
             </p>
         </div>
-        <div class="bg-slate-100 rounded-full h-3 overflow-hidden">
-            <div class="h-full rounded-full transition-all
-                        {{ $spentPct >= 90 ? 'bg-red-500' : ($spentPct >= 70 ? 'bg-amber-500' : 'bg-emerald-500') }}"
-                 style="width: {{ $spentPct }}%"></div>
+        <div class="rounded-full h-3 overflow-hidden" style="background:rgba(255,255,255,.08)">
+            <div class="h-full rounded-full transition-all"
+                 style="width:{{ $spentPct }}%;background:{{ $spentPct >= 90 ? '#ef4444' : ($spentPct >= 70 ? '#f59e0b' : '#10b981') }}"></div>
         </div>
-        <div class="flex justify-between mt-1 text-xs text-slate-400">
+        <div class="flex justify-between mt-1 text-xs" style="color:#6b7280">
             <span>$0</span>
             <span>${{ number_format($summary['total_budget'], 0) }}</span>
         </div>
@@ -51,10 +50,9 @@
 
     {{-- Line items --}}
     @if($budget && $budget->items->count())
-    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-
-        {{-- Header row --}}
-        <div class="hidden lg:grid grid-cols-12 gap-2 px-5 py-3 bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+    <div class="rounded-2xl border overflow-hidden" style="background:#0d1117;border-color:rgba(255,255,255,.07)">
+        <div class="hidden lg:grid grid-cols-12 gap-2 px-5 py-3 text-xs font-semibold uppercase tracking-wide"
+             style="background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.07);color:#6b7280">
             <div class="col-span-5">Item</div>
             <div class="col-span-2 text-right">Allocated</div>
             <div class="col-span-2 text-right">Spent</div>
@@ -64,78 +62,72 @@
 
         @foreach($budget->items as $item)
         @php
-            $alloc     = (float)$item->allocated_amount;
-            $actual    = (float)$item->actual_amount;
-            $left      = $alloc - $actual;
-            $isOver    = $actual > $alloc;
-            $itemPct   = $alloc > 0 ? min(100, round(($actual / $alloc) * 100)) : 0;
-            $barColor  = $itemPct >= 100 ? 'bg-red-500' : ($itemPct >= 80 ? 'bg-amber-400' : 'bg-indigo-400');
+            $alloc    = (float)$item->allocated_amount;
+            $actual   = (float)$item->actual_amount;
+            $left     = $alloc - $actual;
+            $isOver   = $actual > $alloc;
+            $itemPct  = $alloc > 0 ? min(100, round(($actual / $alloc) * 100)) : 0;
+            $barColor = $itemPct >= 100 ? '#ef4444' : ($itemPct >= 80 ? '#f59e0b' : '#818cf8');
         @endphp
-        <div class="px-5 py-4 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition">
+        <div class="px-5 py-4 transition" style="border-bottom:1px solid rgba(255,255,255,.05)"
+             onmouseover="this.style.background='rgba(255,255,255,.02)'"
+             onmouseout="this.style.background='transparent'">
             <div class="lg:grid lg:grid-cols-12 lg:gap-2 lg:items-center space-y-2 lg:space-y-0">
 
-                {{-- Name + bar --}}
                 <div class="lg:col-span-5 min-w-0">
-                    <p class="text-sm font-medium text-slate-800 truncate">{{ $item->line_item }}</p>
+                    <p class="text-sm font-medium text-white truncate">{{ $item->line_item }}</p>
                     <div class="flex items-center gap-2 mt-1.5">
-                        <div class="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                            <div class="h-full rounded-full {{ $barColor }}" style="width:{{ $itemPct }}%"></div>
+                        <div class="flex-1 rounded-full h-1.5 overflow-hidden" style="background:rgba(255,255,255,.08)">
+                            <div class="h-full rounded-full" style="width:{{ $itemPct }}%;background:{{ $barColor }}"></div>
                         </div>
-                        <span class="text-xs text-slate-400 flex-shrink-0">{{ $itemPct }}%</span>
+                        <span class="text-xs flex-shrink-0" style="color:#6b7280">{{ $itemPct }}%</span>
                     </div>
                 </div>
 
-                {{-- Allocated --}}
                 <div class="lg:col-span-2 flex lg:block justify-between">
-                    <span class="lg:hidden text-xs text-slate-500">Allocated</span>
-                    <p class="text-sm font-medium text-slate-700 lg:text-right">${{ number_format($alloc, 0) }}</p>
+                    <span class="lg:hidden text-xs" style="color:#6b7280">Allocated</span>
+                    <p class="text-sm font-medium lg:text-right" style="color:#9ca3af">${{ number_format($alloc, 0) }}</p>
                 </div>
 
-                {{-- Spent --}}
                 <div class="lg:col-span-2 flex lg:block justify-between">
-                    <span class="lg:hidden text-xs text-slate-500">Spent</span>
-                    <p class="text-sm font-bold lg:text-right {{ $isOver ? 'text-red-600' : 'text-emerald-600' }}">
+                    <span class="lg:hidden text-xs" style="color:#6b7280">Spent</span>
+                    <p class="text-sm font-bold lg:text-right" style="color:{{ $isOver ? '#f87171' : '#34d399' }}">
                         ${{ number_format($actual, 0) }}
                         @if($isOver)<span class="text-xs ml-1">over!</span>@endif
                     </p>
                 </div>
 
-                {{-- Remaining --}}
                 <div class="lg:col-span-2 flex lg:block justify-between">
-                    <span class="lg:hidden text-xs text-slate-500">Left</span>
-                    <p class="text-sm font-medium lg:text-right {{ $left < 0 ? 'text-red-600' : 'text-slate-600' }}">
+                    <span class="lg:hidden text-xs" style="color:#6b7280">Left</span>
+                    <p class="text-sm font-medium lg:text-right" style="color:{{ $left < 0 ? '#f87171' : '#9ca3af' }}">
                         {{ $left < 0 ? '-' : '' }}${{ number_format(abs($left), 0) }}
                     </p>
                 </div>
 
-                {{-- Input to update actual spend --}}
                 <div class="lg:col-span-1 flex items-center gap-1">
                     <div class="relative flex-1">
-                        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-slate-400">$</span>
+                        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-xs" style="color:#6b7280">$</span>
                         <input type="number"
                                value="{{ $actual }}"
-                               min="0"
-                               step="1"
+                               min="0" step="1"
                                wire:change="updateActual({{ $item->id }}, $event.target.value)"
                                title="Update actual spend"
-                               class="w-full pl-5 pr-1 py-1.5 border border-slate-300 rounded-lg text-xs text-right
-                                      focus:outline-none focus:border-indigo-400
-                                      {{ $isOver ? 'border-red-300 bg-red-50' : '' }}">
+                               class="w-full pl-5 pr-1 py-1.5 rounded-lg text-xs text-right text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                               style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)">
                     </div>
                 </div>
-
             </div>
         </div>
         @endforeach
 
-        {{-- Footer totals --}}
-        <div class="hidden lg:grid grid-cols-12 gap-2 px-5 py-3 bg-slate-50 border-t border-slate-200 text-sm font-semibold">
-            <div class="col-span-5 text-slate-700">Total</div>
-            <div class="col-span-2 text-right text-slate-700">${{ number_format($summary['total_allocated'], 0) }}</div>
-            <div class="col-span-2 text-right {{ $summary['over_budget'] ? 'text-red-600' : 'text-emerald-600' }}">
+        <div class="hidden lg:grid grid-cols-12 gap-2 px-5 py-3 text-sm font-semibold"
+             style="background:rgba(255,255,255,.04);border-top:1px solid rgba(255,255,255,.07)">
+            <div class="col-span-5 text-white">Total</div>
+            <div class="col-span-2 text-right" style="color:#9ca3af">${{ number_format($summary['total_allocated'], 0) }}</div>
+            <div class="col-span-2 text-right" style="color:{{ $summary['over_budget'] ? '#f87171' : '#34d399' }}">
                 ${{ number_format($summary['total_actual'], 0) }}
             </div>
-            <div class="col-span-2 text-right {{ $summary['unallocated'] < 0 ? 'text-red-600' : 'text-slate-700' }}">
+            <div class="col-span-2 text-right" style="color:{{ $summary['unallocated'] < 0 ? '#f87171' : '#9ca3af' }}">
                 {{ $summary['unallocated'] < 0 ? '-' : '' }}${{ number_format(abs($summary['unallocated']), 0) }}
             </div>
             <div class="col-span-1"></div>
@@ -144,8 +136,8 @@
     @endif
 
 @else
-    <div class="bg-white rounded-2xl border border-slate-200 p-10 text-center">
-        <p class="text-slate-400 text-sm">No budget set yet. Set a total budget above to get started.</p>
+    <div class="rounded-2xl border p-10 text-center" style="background:#0d1117;border-color:rgba(255,255,255,.07)">
+        <p class="text-sm" style="color:#6b7280">No budget set yet. Set a total budget to get started.</p>
     </div>
 @endif
 </div>

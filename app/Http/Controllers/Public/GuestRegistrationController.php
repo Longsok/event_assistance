@@ -1,52 +1,38 @@
 <?php
-
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Guest;
 use App\Models\EventGuest;
-use App\Mail\GuestRegistrationConfirmation;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 
 class GuestRegistrationController extends Controller
 {
-    // Show the public registration page
     public function show(string $inviteToken)
     {
         $event = Event::where('invite_token', $inviteToken)
             ->where('allow_self_registration', true)
-            ->whereIn('status', ['published', 'ongoing'])
+            ->whereIn('status', ['draft', 'published', 'ongoing'])
+            ->with(['inviteCard', 'schedules', 'category'])
             ->firstOrFail();
 
-        // Check if registration is full
         if ($event->max_registrations) {
             $registered = $event->eventGuests()->count();
             if ($registered >= $event->max_registrations) {
-                return view('public.register', [
-                    'event'    => $event,
-                    'isFull'   => true,
-                    'schedule' => [],
-                ]);
+                return view('public.register', ['event' => $event, 'isFull' => true]);
             }
         }
 
-        $schedule = $event->schedules()
-            ->orderBy('day_number')
-            ->orderBy('start_time')
-            ->get()
-            ->groupBy('day_number');
-
-        return view('public.register', compact('event', 'schedule'));
+        return view('public.register', compact('event'));
     }
 
-    // Handle registration form submission
     public function store(Request $request, string $inviteToken)
     {
         $event = Event::where('invite_token', $inviteToken)
             ->where('allow_self_registration', true)
-            ->whereIn('status', ['published', 'ongoing'])
+            ->whereIn('status', ['draft', 'published', 'ongoing'])
+            ->with(['inviteCard', 'schedules', 'category'])
             ->firstOrFail();
 
         $request->validate([
@@ -55,7 +41,6 @@ class GuestRegistrationController extends Controller
             'phone' => 'nullable|string|max:20',
         ]);
 
-        // Find existing guest by email or create new one
         $guest = Guest::where('user_id', $event->user_id)
             ->when($request->email, fn($q) => $q->where('email', $request->email))
             ->first();
@@ -69,7 +54,12 @@ class GuestRegistrationController extends Controller
             ]);
         }
 
-        // Prevent duplicate registration
+        // Schedule for today (used in both registered + alreadyJoined states)
+        $todaySchedule = $event->schedules
+            ->filter(fn($s) => optional($s->schedule_date)->isToday())
+            ->sortBy('start_time')
+            ->values();
+
         $alreadyRegistered = EventGuest::where('event_id', $event->id)
             ->where('guest_id', $guest->id)
             ->exists();
@@ -83,10 +73,11 @@ class GuestRegistrationController extends Controller
                 'event'         => $event,
                 'alreadyJoined' => true,
                 'guestCode'     => $eventGuest->guest_code,
+                'guestName'     => $guest->name,
+                'todaySchedule' => $todaySchedule,   // FIX: was missing
             ]);
         }
 
-        // Create event_guest record
         $eventGuest = EventGuest::create([
             'event_id'       => $event->id,
             'guest_id'       => $guest->id,
@@ -94,20 +85,6 @@ class GuestRegistrationController extends Controller
             'registered_via' => 'invite_link',
             'registered_at'  => now(),
         ]);
-
-        // Send confirmation email if email provided
-        if ($guest->email) {
-            Mail::to($guest->email)
-                ->send(new GuestRegistrationConfirmation($event, $guest, $eventGuest));
-
-            $eventGuest->update(['confirmation_sent' => true]);
-        }
-
-        // Get today's schedule to show after registration
-        $todaySchedule = $event->schedules()
-            ->where('schedule_date', today())
-            ->orderBy('start_time')
-            ->get();
 
         return view('public.register', [
             'event'         => $event,

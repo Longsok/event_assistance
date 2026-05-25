@@ -41,19 +41,20 @@ class EventController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title'        => 'required|string|max:255',
-            'category_id'  => 'required|exists:event_categories,id',
-            'start_date'   => 'required|date|after_or_equal:today',
-            'end_date'     => 'required|date|after_or_equal:start_date',
-            'start_time'   => 'nullable|string',
-            'end_time'     => 'nullable|string',
-            'venue'        => 'nullable|string|max:255',
-            'address'      => 'nullable|string|max:255',
-            'capacity'     => 'required|integer|min:1',
-            'venue_type'   => 'required|in:indoor,outdoor,hybrid',
-            'meal_provided'=> 'boolean',
-            'total_budget' => 'nullable|numeric|min:0',
-            'description'  => 'nullable|string',
+            'title'         => 'required|string|max:255',
+            'category_id'   => 'required|exists:event_categories,id',
+            'start_date'    => 'required|date|after_or_equal:today',
+            'end_date'      => 'required|date|after_or_equal:start_date',
+            'start_time'    => 'nullable|string',
+            'end_time'      => 'nullable|string',
+            'venue'         => 'nullable|string|max:255',
+            'address'       => 'nullable|string|max:255',
+            'capacity'      => 'required|integer|min:1',
+            'venue_type'    => 'required|in:indoor,outdoor,hybrid',
+            'meal_provided' => 'boolean',
+            'total_budget'  => 'nullable|numeric|min:0',
+            'style_pref'    => 'nullable|string|max:50',
+            'description'   => 'nullable|string',
         ]);
 
         $event = Event::create([
@@ -62,21 +63,32 @@ class EventController extends Controller
                 'start_time', 'end_time', 'venue', 'address',
                 'capacity', 'venue_type', 'description',
             ]),
-            'user_id'       => auth()->id(),
-            'meal_provided' => $request->boolean('meal_provided'),
-            'status'        => 'draft',
+            'user_id'          => auth()->id(),
+            'meal_provided'    => $request->boolean('meal_provided'),
+            'is_public'        => $request->boolean('is_public'),
+            'status'           => 'draft',
+            'slug'             => Str::slug($request->title) . '-' . Str::random(6),
+            'invite_token'     => Str::uuid(),
+            'attendance_token' => Str::uuid(),
         ]);
 
-        // Fire all 3 engines
+        // Generate timeline and schedule
         $this->timelineEngine->generate($event);
         $this->scheduleEngine->generate($event);
 
-        if ($request->filled('total_budget')) {
-            $this->budgetEngine->generate($event, (float) $request->total_budget);
-        }
+        // Always generate budget — uses user input or estimates from capacity if not provided
+        $this->budgetEngine->generate($event, (float)($request->total_budget ?? 0));
 
-        return redirect()->route('events.show', $event)
-                         ->with('success', 'Event created! Your timeline has been generated.');
+        // Store preferences in session for AI suggestions page (live only — not in DB)
+        session(['event_prefs_' . $event->id => [
+            'budget'     => (float)($request->total_budget ?? 0),
+            'style'      => $request->style_pref ?? 'modern',
+            'venue_pref' => $request->venue_type ?? 'indoor',
+            'meal'       => $request->boolean('meal_provided') ? 'buffet' : 'no meal',
+        ]]);
+
+        return redirect()->route('events.suggestions.show', $event)
+            ->with('success', 'Event created! Here are our AI recommendations for Phnom Penh.');
     }
 
     public function show(Event $event)
@@ -117,8 +129,8 @@ class EventController extends Controller
             'venue_type'  => 'required|in:indoor,outdoor,hybrid',
         ]);
 
-        $dateChanged     = $event->start_date != $request->start_date || $event->end_date != $request->end_date;
-        $categoryChanged = $event->category_id != $request->category_id;
+        $dateChanged = $event->start_date != $request->start_date
+                    || $event->end_date   != $request->end_date;
 
         $event->update($request->only([
             'title', 'category_id', 'start_date', 'end_date',
@@ -126,14 +138,13 @@ class EventController extends Controller
             'capacity', 'venue_type', 'description',
         ]));
 
-        // If date changed — recalculate pending task due dates
         if ($dateChanged) {
             $this->timelineEngine->recalculate($event);
             $this->scheduleEngine->recalculate($event);
         }
 
         return redirect()->route('events.show', $event)
-                         ->with('success', 'Event updated.');
+            ->with('success', 'Event updated.');
     }
 
     public function destroy(Event $event)
@@ -141,10 +152,9 @@ class EventController extends Controller
         $this->authorizeEvent($event);
         $event->delete();
         return redirect()->route('events.index')
-                         ->with('success', 'Event deleted.');
+            ->with('success', 'Event deleted.');
     }
 
-    // Update event status
     public function updateStatus(Request $request, Event $event)
     {
         $this->authorizeEvent($event);

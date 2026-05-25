@@ -1,31 +1,39 @@
 <x-app-layout>
-<div class="py-6 px-4 sm:px-6 lg:px-8 max-w-lg mx-auto">
+<div class="py-8 px-4 sm:px-6 max-w-xl mx-auto">
     <div class="mb-6">
-        <a href="{{ route('guests.index') }}" class="inline-flex items-center gap-1 text-indigo-600 text-sm hover:underline">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-            Guest Book
-        </a>
+        <a href="{{ route('guests.index') }}" class="text-sm hover:underline mb-2 inline-block" style="color:#818cf8">← Guest Book</a>
+        <h2 class="text-2xl font-bold text-white">Edit Guest</h2>
     </div>
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-        <h2 class="text-xl font-semibold text-slate-900 mb-6">Edit: {{ $guest->name }}</h2>
+    <div class="rounded-2xl border p-6" style="background:#0d1117;border-color:rgba(255,255,255,.07)">
         <form method="POST" action="{{ route('guests.update', $guest) }}" class="space-y-4">
-            @csrf @method('PUT')
+            @csrf @method('PATCH')
             <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1.5">Full Name *</label>
+                <label class="block text-sm font-medium mb-1.5" style="color:#9ca3af">Full Name *</label>
                 <input type="text" name="name" value="{{ old('name', $guest->name) }}" required
-                       class="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-indigo-400">
+                       class="w-full rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                       style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)">
             </div>
             <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+                <label class="block text-sm font-medium mb-1.5" style="color:#9ca3af">Email</label>
                 <input type="email" name="email" value="{{ old('email', $guest->email) }}"
-                       class="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-indigo-400">
+                       class="w-full rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                       style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)">
             </div>
             <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1.5">Phone</label>
+                <label class="block text-sm font-medium mb-1.5" style="color:#9ca3af">Phone</label>
                 <input type="text" name="phone" value="{{ old('phone', $guest->phone) }}"
-                       class="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-indigo-400">
+                       class="w-full rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                       style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)">
             </div>
-            <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-medium transition">Update Guest</button>
+            <div>
+                <label class="block text-sm font-medium mb-1.5" style="color:#9ca3af">Notes</label>
+                <textarea name="notes" rows="3"
+                          class="w-full rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
+                          style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)">{{ old('notes', $guest->notes) }}</textarea>
+            </div>
+            <button type="submit"
+                    class="w-full py-3 text-white font-semibold rounded-xl"
+                    style="background:linear-gradient(135deg,#4f46e5,#7c3aed)">Save Changes</button>
         </form>
     </div>
 </div>

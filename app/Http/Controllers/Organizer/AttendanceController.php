@@ -35,7 +35,8 @@ class AttendanceController extends Controller
             'checked_in' => $checkedIn->count(),
         ];
 
-        return view('attendance.index', compact('event', 'qrCode', 'checkedIn', 'stats'));
+        $attendanceLogs = \App\Models\AttendanceLog::whereHas('eventGuest', fn($q) => $q->where('event_id', $event->id))->with('eventGuest.guest')->orderByDesc('checked_in_at')->get();
+        return view('attendance.index', compact('event', 'qrCode', 'checkedIn', 'stats', 'attendanceLogs'));
     }
 
     // Start check-in — generate attendance token and QR

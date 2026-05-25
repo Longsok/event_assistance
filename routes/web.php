@@ -24,6 +24,8 @@ use App\Http\Controllers\Organizer\EventCompletionController;
 use App\Http\Controllers\Public\GuestRegistrationController;
 use App\Http\Controllers\Public\CheckinController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Organizer\EventSuggestionController;
+use App\Http\Controllers\Organizer\AttendanceScanController;
 
 Route::get('/', function () { return view('welcome'); });
 
@@ -37,6 +39,7 @@ Route::post('/checkin/{attendanceToken}', [CheckinController::class, 'store'])->
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('login', [AdminAuthController::class, 'showLoginForm'])->name('login');
     Route::post('login', [AdminAuthController::class, 'login'])->name('login.store');
+
 });
 
 // Admin protected routes
@@ -92,6 +95,19 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('events/{event}/invite/preview', [\App\Http\Controllers\Organizer\InviteCardController::class, 'preview'])->name('events.invite.preview');
+    // AI Suggestions (after event creation)
+    Route::get('events/{event}/suggestions', [EventSuggestionController::class, 'show'])->name('events.suggestions.show');
+    Route::post('events/{event}/suggestions/select', [EventSuggestionController::class, 'selectVenue'])->name('events.suggestions.select');
+    Route::post('events/{event}/suggestions/skip', [EventSuggestionController::class, 'skip'])->name('events.suggestions.skip');
+
+    // QR Scanner (organizer scans guests)
+    Route::get('events/{event}/attendance/scan', [AttendanceScanController::class, 'scan'])->name('events.attendance.scan');
+    Route::post('events/{event}/attendance/scan/process', [AttendanceScanController::class, 'process'])->name('events.attendance.scan.process');
+    Route::get('events/{event}/attendance/scan/stats', [AttendanceScanController::class, 'stats'])->name('events.attendance.scan.stats');
+
+    // Guest QR invite cards list
+    Route::get('events/{event}/invite/guests', [\App\Http\Controllers\Organizer\InviteCardController::class, 'guestList'])->name('events.invite.guests');
 
     Route::get('/profile',    [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile',  [ProfileController::class, 'update'])->name('profile.update');
