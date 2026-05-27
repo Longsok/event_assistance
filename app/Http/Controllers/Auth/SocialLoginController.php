@@ -3,27 +3,32 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use Laravel\Socialite\Facades\Socialite;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use GuzzleHttp\Client;
 
 class SocialLoginController extends Controller
 {
     public function redirectToGoogle()
     {
-        return Socialite::driver('google')->redirect();
+        return Socialite::driver('google')->stateless()->redirect();
     }
 
     public function handleGoogleCallback()
     {
-        $googleUser = Socialite::driver('google')->user();
+        $socialUser = Socialite::driver('google')
+            ->setHttpClient(new Client(['verify' => false]))
+            ->stateless()
+            ->user();
 
         $user = User::updateOrCreate(
-            ['provider' => 'google', 'provider_id' => $googleUser->getId()],
+            ['email' => $socialUser->getEmail()],
             [
-                'name'              => $googleUser->getName(),
-                'email'             => $googleUser->getEmail(),
-                'avatar'            => $googleUser->getAvatar(),
+                'name'              => $socialUser->getName(),
+                'google_id'         => $socialUser->getId(),
+                'password'          => bcrypt(Str::random(24)),
                 'email_verified_at' => now(),
             ]
         );
@@ -33,24 +38,28 @@ class SocialLoginController extends Controller
         }
 
         Auth::login($user);
-        return $this->redirectBasedOnRole($user);
+
+        return redirect()->route('dashboard');
     }
 
     public function redirectToFacebook()
     {
-        return Socialite::driver('facebook')->redirect();
+        return Socialite::driver('facebook')->stateless()->redirect();
     }
 
     public function handleFacebookCallback()
     {
-        $facebookUser = Socialite::driver('facebook')->user();
+        $socialUser = Socialite::driver('facebook')
+            ->setHttpClient(new Client(['verify' => false]))
+            ->stateless()
+            ->user();
 
         $user = User::updateOrCreate(
-            ['provider' => 'facebook', 'provider_id' => $facebookUser->getId()],
+            ['email' => $socialUser->getEmail()],
             [
-                'name'              => $facebookUser->getName(),
-                'email'             => $facebookUser->getEmail(),
-                'avatar'            => $facebookUser->getAvatar(),
+                'name'              => $socialUser->getName(),
+                'facebook_id'       => $socialUser->getId(),
+                'password'          => bcrypt(Str::random(24)),
                 'email_verified_at' => now(),
             ]
         );
@@ -60,13 +69,7 @@ class SocialLoginController extends Controller
         }
 
         Auth::login($user);
-        return $this->redirectBasedOnRole($user);
-    }
 
-    private function redirectBasedOnRole(User $user)
-    {
-        return $user->hasRole('admin')
-            ? redirect()->route('admin.dashboard')
-            : redirect()->route('dashboard');
+        return redirect()->route('dashboard');
     }
 }
