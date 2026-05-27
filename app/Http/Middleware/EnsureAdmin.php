@@ -9,37 +9,23 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureAdmin
 {
-    /**
-     * Handle an incoming request.
-     * Allows only authenticated users who have the 'admin' role.
-     * All others are redirected to the admin login page.
-     */
     public function handle(Request $request, Closure $next): Response
     {
-        if (! Auth::check()) {
+        // Not logged in → go to ADMIN login (not organizer login)
+        if (!Auth::check()) {
             return redirect()->route('admin.login')
                 ->with('status', 'Please log in to access the admin panel.');
         }
 
-        if (! Auth::user()->hasRole('admin')) {
-            // They are logged in but not admin — log them out of this session
-            // so they can't accidentally linger and then navigate to admin routes
+        // Logged in but not admin → log out and send to admin login
+        if (!Auth::user()->hasRole('admin')) {
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
-
             return redirect()->route('admin.login')
-                ->withErrors(['email' => 'You do not have permission to access the admin panel.']);
+                ->withErrors(['email' => 'You do not have admin access.']);
         }
 
         return $next($request);
-    }
-
-    protected function redirectTo(Request $request): ?string
-    {
-        if ($request->is('admin*')) {
-            return route('admin.login');
-        }
-        return $request->expectsJson() ? null : route('login');
     }
 }

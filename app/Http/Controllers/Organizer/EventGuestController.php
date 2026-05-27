@@ -10,12 +10,11 @@ use Illuminate\Http\Request;
 
 class EventGuestController extends Controller
 {
-    // Guest list for a specific event
     public function index(Event $event)
     {
         $this->authorizeEvent($event);
 
-        $eventGuests = $event->eventGuests() ->with('guest') ->latest() ->paginate(20);
+        $eventGuests = $event->eventGuests()->with('guest')->latest()->paginate(20);
 
         $stats = [
             'total'     => $event->eventGuests()->count(),
@@ -24,42 +23,80 @@ class EventGuestController extends Controller
             'declined'  => $event->eventGuests()->where('rsvp_status', 'declined')->count(),
         ];
 
-        // Available guests not yet added to this event
         $availableGuests = Guest::where('user_id', auth()->id())
-            ->whereNotIn('id', $event->eventGuests()->pluck('guest_id')) ->get();
+            ->whereNotIn('id', $event->eventGuests()->pluck('guest_id'))
+            ->get();
 
-        return view('guests.event-guests', compact(
-            'event',
-            'eventGuests',
-            'stats',
-            'availableGuests'
-        ));
+        return view('guests.event-guests', compact('event', 'eventGuests', 'stats', 'availableGuests'));
     }
 
-    // Attach existing guest to event
+    // Add guest inline from event show page (name + email/phone)
     public function store(Request $request, Event $event)
     {
         $this->authorizeEvent($event);
 
+        // If guest_id provided — attach existing guest from guest book
+        if ($request->filled('guest_id')) {
+            $request->validate(['guest_id' => 'required|exists:guests,id']);
+
+            if ($event->eventGuests()->where('guest_id', $request->guest_id)->exists()) {
+                return back()->with('error', 'Guest already added to this event.');
+            }
+
+            EventGuest::create([
+                'event_id'   => $event->id,
+                'guest_id'   => $request->guest_id,
+                'invited_at' => now(),
+            ]);
+
+            return back()->with('success', 'Guest added to event.');
+        }
+
+        // Otherwise create new guest from inline form
         $request->validate([
-            'guest_id' => 'required|exists:guests,id',
+            'name'  => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:20',
         ]);
 
-        // Prevent duplicate
-        if ($event->eventGuests()->where('guest_id', $request->guest_id)->exists()) {
-            return back()->with('error', 'Guest already added to this event.');
+        // Require at least email or phone
+        if (!$request->filled('email') && !$request->filled('phone')) {
+            return back()
+                ->withInput()
+                ->withErrors(['email' => 'Please provide at least an email or phone number.']);
+        }
+
+        // Find existing guest by email (avoid duplicates)
+        $guest = null;
+        if ($request->filled('email')) {
+            $guest = Guest::where('user_id', auth()->id())
+                ->where('email', $request->email)
+                ->first();
+        }
+
+        if (!$guest) {
+            $guest = Guest::create([
+                'user_id' => auth()->id(),
+                'name'    => $request->name,
+                'email'   => $request->email,
+                'phone'   => $request->phone,
+            ]);
+        }
+
+        // Prevent duplicate event registration
+        if ($event->eventGuests()->where('guest_id', $guest->id)->exists()) {
+            return back()->with('error', "{$guest->name} is already on the guest list.");
         }
 
         EventGuest::create([
-            'event_id'    => $event->id,
-            'guest_id'    => $request->guest_id,
-            'invited_at'  => now(),
+            'event_id'   => $event->id,
+            'guest_id'   => $guest->id,
+            'invited_at' => now(),
         ]);
 
-        return back()->with('success', 'Guest added to event.');
+        return back()->with('success', "{$guest->name} added to event.");
     }
 
-    // Update RSVP status, seat, meal preference
     public function update(Request $request, Event $event, EventGuest $eventGuest)
     {
         $this->authorizeEvent($event);
@@ -70,11 +107,7 @@ class EventGuestController extends Controller
             'meal_preference' => 'nullable|string|max:100',
         ]);
 
-        $eventGuest->update($request->only([
-            'rsvp_status',
-            'seat_number',
-            'meal_preference',
-        ]));
+        $eventGuest->update($request->only(['rsvp_status', 'seat_number', 'meal_preference']));
 
         return back()->with('success', 'Guest updated.');
     }

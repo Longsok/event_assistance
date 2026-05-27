@@ -9,22 +9,17 @@ use Illuminate\Support\Facades\Auth;
 
 class SocialLoginController extends Controller
 {
-    // Redirect to Google
     public function redirectToGoogle()
     {
         return Socialite::driver('google')->redirect();
     }
 
-    // Handle Google callback
     public function handleGoogleCallback()
     {
         $googleUser = Socialite::driver('google')->user();
 
         $user = User::updateOrCreate(
-            [
-                'provider'    => 'google',
-                'provider_id' => $googleUser->getId(),
-            ],
+            ['provider' => 'google', 'provider_id' => $googleUser->getId()],
             [
                 'name'              => $googleUser->getName(),
                 'email'             => $googleUser->getEmail(),
@@ -33,32 +28,25 @@ class SocialLoginController extends Controller
             ]
         );
 
-        // Assign default role if new user
-        if (!$user->hasAnyRole(['admin', 'user'])) {
-            $user->assignRole('user');
+        if (!$user->hasAnyRole(['admin', 'organizer'])) {
+            $user->assignRole('organizer');
         }
 
         Auth::login($user);
-
         return $this->redirectBasedOnRole($user);
     }
 
-    // Redirect to Facebook
     public function redirectToFacebook()
     {
         return Socialite::driver('facebook')->redirect();
     }
 
-    // Handle Facebook callback
     public function handleFacebookCallback()
     {
         $facebookUser = Socialite::driver('facebook')->user();
 
         $user = User::updateOrCreate(
-            [
-                'provider'    => 'facebook',
-                'provider_id' => $facebookUser->getId(),
-            ],
+            ['provider' => 'facebook', 'provider_id' => $facebookUser->getId()],
             [
                 'name'              => $facebookUser->getName(),
                 'email'             => $facebookUser->getEmail(),
@@ -67,21 +55,18 @@ class SocialLoginController extends Controller
             ]
         );
 
-        if (!$user->hasAnyRole(['admin', 'user'])) {
-            $user->assignRole('user');
+        if (!$user->hasAnyRole(['admin', 'organizer'])) {
+            $user->assignRole('organizer');
         }
 
         Auth::login($user);
-
         return $this->redirectBasedOnRole($user);
     }
 
-    // Redirect after login based on role
     private function redirectBasedOnRole(User $user)
     {
-        if ($user->hasRole('admin')) {
-            return redirect()->route('admin.dashboard');
-        }
-        return redirect()->route('dashboard');
+        return $user->hasRole('admin')
+            ? redirect()->route('admin.dashboard')
+            : redirect()->route('dashboard');
     }
 }

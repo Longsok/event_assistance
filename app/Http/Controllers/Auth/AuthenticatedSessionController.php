@@ -11,11 +11,6 @@ use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
-    /**
-     * Display the user login view.
-     * If already logged in as admin → send to admin dashboard.
-     * If already logged in as user → send to user dashboard.
-     */
     public function create(): View|RedirectResponse
     {
         if (Auth::check()) {
@@ -23,44 +18,39 @@ class AuthenticatedSessionController extends Controller
                 ? redirect()->route('admin.dashboard')
                 : redirect()->route('dashboard');
         }
-
         return view('auth.login');
     }
 
-    /**
-     * Handle an incoming authentication request.
-     * After login, if the user is an admin, redirect to admin dashboard.
-     * Otherwise redirect to the normal user dashboard.
-     */
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
-
         $request->session()->regenerate();
 
-        // Prevent admin from logging in via user login form
+        // Admin tried to login via organizer form — send them to admin login
         if (Auth::user()->hasRole('admin')) {
-
             Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return redirect()->route('admin.login')
+                ->with('status', 'Please use this admin login page.');
+        }
 
+        // Must have organizer role
+        if (!Auth::user()->hasRole('organizer')) {
+            Auth::logout();
             return back()->withErrors([
-                'email' => 'Please use the admin login page.',
-            ]);
+                'email' => 'Your account does not have organizer access.',
+            ])->onlyInput('email');
         }
 
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
-    /**
-     * Destroy an authenticated session.
-     */
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
-
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-
         return redirect('/');
     }
 }

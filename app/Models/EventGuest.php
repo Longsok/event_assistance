@@ -20,20 +20,33 @@ class EventGuest extends Model
     ];
 
     protected $casts = [
-        'invited_at'         => 'datetime',
-        'registered_at'      => 'datetime',
-        'confirmation_sent'  => 'boolean',
+        'invited_at'        => 'datetime',
+        'registered_at'     => 'datetime',
+        'confirmation_sent' => 'boolean',
     ];
 
-    // Auto generate guest_code on creation
     protected static function booted(): void
     {
         static::creating(function (EventGuest $eventGuest) {
             if (empty($eventGuest->guest_code)) {
                 $prefix = strtoupper(substr($eventGuest->event->category->slug ?? 'EVT', 0, 4));
                 $year   = now()->year;
-                $count  = static::where('event_id', $eventGuest->event_id)->count() + 1;
-                $eventGuest->guest_code = "{$prefix}-{$year}-" . str_pad($count, 3, '0', STR_PAD_LEFT);
+                $base   = "{$prefix}-{$year}-";
+
+                // Use DB::table() to bypass model scopes and find the
+                // highest existing code for this prefix globally
+                $maxCode = \DB::table('event_guests')
+                    ->where('guest_code', 'like', $base . '%')
+                    ->max('guest_code');
+
+                if ($maxCode) {
+                    $lastNum = (int) substr($maxCode, strrpos($maxCode, '-') + 1);
+                    $next = $lastNum + 1;
+                } else {
+                    $next = 1;
+                }
+
+                $eventGuest->guest_code = $base . str_pad($next, 3, '0', STR_PAD_LEFT);
             }
         });
     }

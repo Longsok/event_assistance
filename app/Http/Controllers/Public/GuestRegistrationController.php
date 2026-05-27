@@ -41,9 +41,25 @@ class GuestRegistrationController extends Controller
             'phone' => 'nullable|string|max:20',
         ]);
 
-        $guest = Guest::where('user_id', $event->user_id)
-            ->when($request->email, fn($q) => $q->where('email', $request->email))
-            ->first();
+        // At least one contact detail required
+        if (!$request->filled('email') && !$request->filled('phone')) {
+            return back()
+                ->withInput()
+                ->withErrors(['email' => 'Please provide at least an email or phone number.']);
+        }
+
+        // ── Guest lookup ───────────────────────────────────────────
+        // Only match an existing guest if an email was provided AND
+        // that email already exists under this organiser.
+        // Never match by user_id alone — that would silently reuse
+        // the first guest in the list when no email is given.
+        $guest = null;
+
+        if ($request->filled('email')) {
+            $guest = Guest::where('user_id', $event->user_id)
+                ->where('email', $request->email)
+                ->first();
+        }
 
         if (!$guest) {
             $guest = Guest::create([
@@ -74,7 +90,7 @@ class GuestRegistrationController extends Controller
                 'alreadyJoined' => true,
                 'guestCode'     => $eventGuest->guest_code,
                 'guestName'     => $guest->name,
-                'todaySchedule' => $todaySchedule,   // FIX: was missing
+                'todaySchedule' => $todaySchedule,
             ]);
         }
 

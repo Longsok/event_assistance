@@ -43,7 +43,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 });
 
 // Admin protected routes
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function () {
     Route::post('logout', [AdminAuthController::class, 'logout'])->name('logout');
 
     // Dashboard
@@ -92,7 +92,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 });
 
 // Organizer protected routes
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'organizer'])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('events/{event}/invite/preview', [\App\Http\Controllers\Organizer\InviteCardController::class, 'preview'])->name('events.invite.preview');

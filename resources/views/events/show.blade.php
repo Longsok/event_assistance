@@ -241,10 +241,10 @@
             <input type="text" name="name" placeholder="Full Name *" required
                    class="flex-1 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                    style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)">
-            <input type="email" name="email" placeholder="Email (optional)"
+            <input type="email" name="email" placeholder="Email * (or phone)"
                    class="flex-1 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                    style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)">
-            <input type="text" name="phone" placeholder="Phone (optional)"
+            <input type="text" name="phone" placeholder="Phone (or email)"
                    class="flex-1 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                    style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)">
             <button type="submit"
@@ -253,6 +253,9 @@
                 + Add
             </button>
         </form>
+        @if($errors->has('email'))
+        <p class="text-xs mt-2" style="color:#f87171">{{ $errors->first('email') }}</p>
+        @endif
     </div>
 
     <div class="rounded-2xl border overflow-hidden" style="background:#0d1117;border-color:rgba(255,255,255,.07)">

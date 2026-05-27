@@ -14,11 +14,6 @@ use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
-    /**
-     * Show registration form.
-     * If already logged in as admin → admin dashboard.
-     * If already logged in as user  → user dashboard.
-     */
     public function create(): View|RedirectResponse
     {
         if (Auth::check()) {
@@ -30,14 +25,8 @@ class RegisteredUserController extends Controller
         return view('auth.register');
     }
 
-    /**
-     * Handle registration form submission.
-     * Always assigns the 'user' (organizer) role — never 'admin'.
-     * Admin accounts must be created via: php artisan db:seed
-     */
     public function store(Request $request): RedirectResponse
     {
-        // Block if somehow already authenticated
         if (Auth::check()) {
             return redirect()->route('dashboard');
         }
@@ -54,8 +43,8 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        // Public registration always creates organizer (user) role — never admin
-        $user->assignRole('user');
+        // Public registration always creates 'organizer' role — never 'admin'
+        $user->assignRole('organizer');
 
         event(new Registered($user));
 

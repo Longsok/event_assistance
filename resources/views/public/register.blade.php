@@ -317,7 +317,7 @@
 
                     <div>
                         <label style="display:block;color:#9ca3af;font-size:13px;font-weight:500;margin-bottom:6px">
-                            Email <span style="color:#6b7280;font-weight:400">(optional)</span>
+                            Email <span style="color:#f87171;font-size:11px">* one required</span>
                         </label>
                         <input type="email" name="email" value="{{ old('email') }}" placeholder="your@email.com"
                                style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;color:white;font-size:14px;outline:none;box-sizing:border-box;font-family:Outfit,sans-serif"
@@ -327,7 +327,7 @@
 
                     <div>
                         <label style="display:block;color:#9ca3af;font-size:13px;font-weight:500;margin-bottom:6px">
-                            Phone <span style="color:#6b7280;font-weight:400">(optional)</span>
+                            Phone <span style="color:#9ca3af;font-size:11px;font-weight:400">or email above</span>
                         </label>
                         <input type="text" name="phone" value="{{ old('phone') }}" placeholder="e.g. 012 345 678"
                                style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;color:white;font-size:14px;outline:none;box-sizing:border-box;font-family:Outfit,sans-serif"

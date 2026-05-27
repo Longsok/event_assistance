@@ -10,11 +10,11 @@ use Illuminate\Http\Request;
 
 class CheckinController extends Controller
 {
-    // Show the check-in page
+    // Show the check-in page — event must have an active attendance_token
     public function show(string $attendanceToken)
     {
         $event = Event::where('attendance_token', $attendanceToken)
-            ->where('status', 'ongoing')
+            ->whereIn('status', ['published', 'ongoing'])
             ->firstOrFail();
 
         return view('public.checkin', compact('event'));
@@ -24,7 +24,7 @@ class CheckinController extends Controller
     public function store(Request $request, string $attendanceToken)
     {
         $event = Event::where('attendance_token', $attendanceToken)
-            ->where('status', 'ongoing')
+            ->whereIn('status', ['published', 'ongoing'])
             ->firstOrFail();
 
         $request->validate([
@@ -32,19 +32,16 @@ class CheckinController extends Controller
             'name'       => 'required|string|max:255',
         ]);
 
-        // Find event guest by guest_code
         $eventGuest = EventGuest::where('event_id', $event->id)
             ->where('guest_code', strtoupper(trim($request->guest_code)))
             ->first();
 
-        // Guest code not found
         if (!$eventGuest) {
-            return back()
-                ->withInput()
-                ->withErrors(['guest_code' => 'Guest ID not found for this event.']);
+            return back()->withInput()
+                ->withErrors(['guest_code' => 'Guest code not found for this event.']);
         }
 
-        // Fuzzy name check — case insensitive, partial match
+        // Fuzzy name check
         $inputName  = strtolower(trim($request->name));
         $guestName  = strtolower($eventGuest->guest->name);
 
@@ -53,15 +50,13 @@ class CheckinController extends Controller
             || similar_text($inputName, $guestName) >= (strlen($guestName) * 0.7);
 
         if (!$nameMatches) {
-            return back()
-                ->withInput()
-                ->withErrors(['name' => 'Name does not match our records. Please try again.']);
+            return back()->withInput()
+                ->withErrors(['name' => 'Name does not match. Please try again.']);
         }
 
         // Already checked in
         if ($eventGuest->attendanceLogs()->exists()) {
             $checkedInAt = $eventGuest->attendanceLogs()->first()->checked_in_at;
-
             return view('public.checkin', [
                 'event'           => $event,
                 'alreadyCheckedIn'=> true,
@@ -70,18 +65,15 @@ class CheckinController extends Controller
             ]);
         }
 
-        // Record attendance
         AttendanceLog::create([
             'event_guest_id' => $eventGuest->id,
-            'scanned_by'     => null, // self check-in
+            'scanned_by'     => null,
             'scan_method'    => 'self',
             'checked_in_at'  => now(),
         ]);
 
-        // Update RSVP to attended
         $eventGuest->update(['rsvp_status' => 'attended']);
 
-        // Get today's schedule to show on success page
         $todaySchedule = $event->schedules()
             ->where('schedule_date', today())
             ->orderBy('start_time')
@@ -91,7 +83,7 @@ class CheckinController extends Controller
             'event'         => $event,
             'guestName'     => $eventGuest->guest->name,
             'checkedInAt'   => now(),
-            'todaySchedule' => $todaySchedule, // show agenda after check-in
+            'todaySchedule' => $todaySchedule,
         ]);
     }
 }

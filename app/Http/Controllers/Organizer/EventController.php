@@ -121,27 +121,26 @@ class EventController extends Controller
         $this->authorizeEvent($event);
 
         $request->validate([
-            'title'       => 'required|string|max:255',
-            'category_id' => 'required|exists:event_categories,id',
-            'start_date'  => 'required|date',
-            'end_date'    => 'required|date|after_or_equal:start_date',
-            'capacity'    => 'required|integer|min:1',
-            'venue_type'  => 'required|in:indoor,outdoor,hybrid',
+            'title'         => 'required|string|max:255',
+            'category_id'   => 'required|exists:event_categories,id',
+            'start_date'    => 'required|date',
+            'end_date'      => 'required|date|after_or_equal:start_date',
+            'capacity'      => 'required|integer|min:1',
+            'venue_type'    => 'required|in:indoor,outdoor,hybrid',
+            'status'        => 'nullable|in:draft,published,ongoing,completed,cancelled',
+            'is_public'     => 'nullable|boolean',
+            'meal_provided' => 'nullable|boolean',
         ]);
 
-        $dateChanged = $event->start_date != $request->start_date
-                    || $event->end_date   != $request->end_date;
-
-        $event->update($request->only([
-            'title', 'category_id', 'start_date', 'end_date',
-            'start_time', 'end_time', 'venue', 'address',
-            'capacity', 'venue_type', 'description',
-        ]));
-
-        if ($dateChanged) {
-            $this->timelineEngine->recalculate($event);
-            $this->scheduleEngine->recalculate($event);
-        }
+        $event->update([
+            ...$request->only([
+                'title', 'category_id', 'start_date', 'end_date',
+                'start_time', 'end_time', 'venue', 'address',
+                'capacity', 'venue_type', 'description', 'status',
+            ]),
+            'is_public'     => $request->boolean('is_public'),
+            'meal_provided' => $request->boolean('meal_provided'),
+        ]);
 
         return redirect()->route('events.show', $event)
             ->with('success', 'Event updated.');

@@ -12,9 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->trustProxies(at: '*');
-        $middleware->alias(['admin' => \App\Http\Middleware\EnsureAdmin::class]);
         $middleware->alias([
-            'admin' => \App\Http\Middleware\EnsureAdmin::class,
+            'admin'     => \App\Http\Middleware\EnsureAdmin::class,
+            'organizer' => \App\Http\Middleware\EnsureOrganizer::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
