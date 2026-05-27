@@ -19,7 +19,7 @@ class SocialLoginController extends Controller
     public function handleGoogleCallback()
     {
         $socialUser = Socialite::driver('google')
-            ->setHttpClient(new Client(['verify' => false]))
+            ->setHttpClient(new Client(['verify' => app()->environment('local') ? false : true]))
             ->stateless()
             ->user();
 
