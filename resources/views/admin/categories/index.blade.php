@@ -1,11 +1,11 @@
 <x-admin-layout title="Categories">
     <div class="flex items-center justify-between mb-6">
-        <h2 class="text-xl font-semibold text-white">Event Categories</h2>
+        <h2 class="text-xl font-semibold" style="color:var(--text-strong)">Event Categories</h2>
         <a href="{{ route('admin.categories.create') }}" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition">+ New Category</a>
     </div>
-    <div class="rounded-xl border border-gray-800 overflow-hidden" style="background:#111827">
+    <div class="rounded-xl border overflow-hidden" style="background:var(--panel);border-color:var(--border)">
         <table class="w-full text-sm">
-            <thead class="text-gray-400 uppercase text-xs border-b border-gray-800" style="background:#1f2937">
+            <thead class="uppercase text-xs" style="background:var(--panel-input);color:var(--text-soft);border-bottom:1px solid var(--border)">
                 <tr>
                     <th class="px-6 py-3 text-left">Name</th>
                     <th class="px-6 py-3 text-left">Color</th>
@@ -14,17 +14,18 @@
                     <th class="px-6 py-3 text-right">Actions</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-800">
+            <tbody>
                 @forelse($categories as $cat)
-                <tr class="hover:bg-gray-800/50">
+                <tr style="border-bottom:1px solid var(--border)"
+                    onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background='transparent'">
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-3">
                             <div class="w-3 h-3 rounded-full" style="background:{{ $cat->color }}"></div>
-                            <span class="text-white font-medium">{{ $cat->name }}</span>
+                            <span class="font-medium" style="color:var(--text-strong)">{{ $cat->name }}</span>
                         </div>
                     </td>
-                    <td class="px-6 py-4 text-gray-400">{{ $cat->color }}</td>
-                    <td class="px-6 py-4 text-gray-400">{{ $cat->events_count ?? 0 }}</td>
+                    <td class="px-6 py-4" style="color:var(--text-soft)">{{ $cat->color }}</td>
+                    <td class="px-6 py-4" style="color:var(--text-soft)">{{ $cat->events_count ?? 0 }}</td>
                     <td class="px-6 py-4">
                         <span class="px-2 py-1 rounded text-xs {{ $cat->is_active ? 'bg-emerald-900/40 text-emerald-400' : 'bg-gray-800 text-gray-500' }}">
                             {{ $cat->is_active ? 'Active' : 'Inactive' }}
@@ -41,7 +42,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">No categories yet.</td></tr>
+                <tr><td colspan="5" class="px-6 py-8 text-center" style="color:var(--text-soft)">No categories yet.</td></tr>
                 @endforelse
             </tbody>
         </table>

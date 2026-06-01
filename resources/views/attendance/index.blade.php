@@ -4,9 +4,9 @@
     <div class="flex items-center justify-between">
         <div>
             <a href="{{ route('events.show', $event) }}" class="text-sm hover:underline" style="color:#818cf8">← {{ $event->title }}</a>
-            <h2 class="text-2xl font-bold text-white mt-1">Attendance</h2>
+            <h2 class="text-2xl font-bold mt-1" style="color:var(--text-strong)">Attendance</h2>
         </div>
-        <span class="text-sm" style="color:#6b7280">{{ now()->format('M d, Y') }}</span>
+        <span class="text-sm" style="color:var(--text-soft)">{{ now()->format('M d, Y') }}</span>
     </div>
 
     {{-- Live counter --}}
@@ -15,7 +15,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
         {{-- Event QR for public check-in --}}
-        <div class="rounded-2xl border p-6" style="background:#0d1117;border-color:rgba(255,255,255,.07)">
+        <div class="rounded-2xl border p-6" style="background:var(--panel);border-color:var(--border)">
             @if($event->attendance_token)
             <div class="text-center space-y-4">
                 <div class="inline-flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-full"
@@ -28,9 +28,9 @@
                     <img src="data:image/svg+xml;base64,{{ $qrCode }}" alt="QR Code" class="w-48 h-48">
                 </div>
                 @endif
-                <div class="rounded-xl p-3" style="background:rgba(255,255,255,.05)">
-                    <p class="text-xs mb-1" style="color:#6b7280">Check-in URL</p>
-                    <p class="text-xs font-mono break-all" style="color:#9ca3af">
+                <div class="rounded-xl p-3" style="background:var(--hover)">
+                    <p class="text-xs mb-1" style="color:var(--text-soft)">Check-in URL</p>
+                    <p class="text-xs font-mono break-all" style="color:var(--text-soft)">
                         {{ route('public.checkin', $event->attendance_token) }}
                     </p>
                 </div>
@@ -47,7 +47,7 @@
             </div>
             @else
             <div class="text-center py-6">
-                <p class="text-sm mb-4" style="color:#6b7280">Check-in is not active yet.</p>
+                <p class="text-sm mb-4" style="color:var(--text-soft)">Check-in is not active yet.</p>
                 <form method="POST" action="{{ route('events.attendance.start', $event) }}">
                     @csrf
                     <button type="submit"
@@ -61,18 +61,18 @@
         </div>
 
         {{-- Manual check-in --}}
-        <div class="rounded-2xl border p-6" style="background:#0d1117;border-color:rgba(255,255,255,.07)">
-            <h3 class="font-semibold text-white mb-4">Manual Check-in</h3>
+        <div class="rounded-2xl border p-6" style="background:var(--panel);border-color:var(--border)">
+            <h3 class="font-semibold mb-4" style="color:var(--text-strong)">Manual Check-in</h3>
             <form method="POST" action="{{ route('events.attendance.manual', $event) }}" class="space-y-4">
                 @csrf
                 <div>
-                    <label class="block text-sm mb-1.5" style="color:#9ca3af">Select Guest</label>
+                    <label class="block text-sm mb-1.5" style="color:var(--text-soft)">Select Guest</label>
                     <select name="event_guest_id"
-                            class="w-full rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                            style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)">
-                        <option value="" style="background:#0d1117">Choose guest...</option>
+                            class="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                            style="background:var(--input-bg);border:1px solid var(--input-border);color:var(--text)">
+                        <option value="" style="background:var(--panel)">Choose guest...</option>
                         @foreach($event->eventGuests as $eg)
-                        <option value="{{ $eg->id }}" style="background:#0d1117">
+                        <option value="{{ $eg->id }}" style="background:var(--panel)">
                             {{ $eg->guest->name }}
                             {{ $eg->rsvp_status === 'attended' ? '✓' : '' }}
                         </option>
@@ -97,9 +97,9 @@
     {{-- QR Scanner link --}}
     <a href="{{ route('events.attendance.scan', $event) }}"
        class="flex items-center gap-4 rounded-2xl border p-5 transition group"
-       style="background:#0d1117;border-color:rgba(255,255,255,.07)"
+       style="background:var(--panel);border-color:var(--border)"
        onmouseover="this.style.borderColor='rgba(99,102,241,.4)'"
-       onmouseout="this.style.borderColor='rgba(255,255,255,.07)'">
+       onmouseout="this.style.borderColor='var(--border)'">
         <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
              style="background:rgba(79,70,229,.12)">
             <svg class="w-5 h-5" style="color:#818cf8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,8 +108,8 @@
             </svg>
         </div>
         <div class="flex-1">
-            <p class="font-semibold text-white">Open QR Scanner</p>
-            <p class="text-sm" style="color:#6b7280">Scan guest QR codes at the door with your phone camera</p>
+            <p class="font-semibold" style="color:var(--text-strong)">Open QR Scanner</p>
+            <p class="text-sm" style="color:var(--text-soft)">Scan guest QR codes at the door with your phone camera</p>
         </div>
         <svg class="w-5 h-5 group-hover:translate-x-1 transition" style="color:#818cf8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -118,21 +118,21 @@
 
     {{-- Check-in log --}}
     @if($attendanceLogs->count())
-    <div class="rounded-2xl border overflow-hidden" style="background:#0d1117;border-color:rgba(255,255,255,.07)">
-        <div class="px-5 py-4" style="border-bottom:1px solid rgba(255,255,255,.07)">
-            <h3 class="font-semibold text-white">Check-in Log</h3>
+    <div class="rounded-2xl border overflow-hidden" style="background:var(--panel);border-color:var(--border)">
+        <div class="px-5 py-4" style="border-bottom:1px solid var(--border)">
+            <h3 class="font-semibold" style="color:var(--text-strong)">Check-in Log</h3>
         </div>
         @foreach($attendanceLogs as $log)
-        <div class="flex items-center gap-4 px-5 py-3.5" style="border-bottom:1px solid rgba(255,255,255,.05)">
+        <div class="flex items-center gap-4 px-5 py-3.5" style="border-bottom:1px solid var(--border-soft)">
             <div class="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
                  style="background:linear-gradient(135deg,#059669,#047857)">
                 {{ strtoupper(substr($log->eventGuest->guest->name ?? '?', 0, 1)) }}
             </div>
             <div class="flex-1">
-                <p class="text-sm font-medium text-white">{{ $log->eventGuest->guest->name ?? '—' }}</p>
-                <p class="text-xs" style="color:#6b7280">{{ $log->scan_method ?? 'manual' }}</p>
+                <p class="text-sm font-medium" style="color:var(--text-strong)">{{ $log->eventGuest->guest->name ?? '—' }}</p>
+                <p class="text-xs" style="color:var(--text-soft)">{{ $log->scan_method ?? 'manual' }}</p>
             </div>
-            <span class="text-xs" style="color:#6b7280">{{ $log->checked_in_at->format('H:i') }}</span>
+            <span class="text-xs" style="color:var(--text-soft)">{{ $log->checked_in_at->format('H:i') }}</span>
         </div>
         @endforeach
     </div>

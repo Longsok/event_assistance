@@ -1,9 +1,9 @@
 <x-admin-layout title="All Events">
     <div class="flex items-center justify-between mb-6">
         <div>
-            <h2 class="text-xl font-semibold text-white">All Events</h2>
+            <h2 class="text-xl font-semibold" style="color:var(--text-strong)">All Events</h2>
             @if(isset($events) && method_exists($events, 'total'))
-            <p class="text-sm text-gray-500 mt-0.5">{{ $events->total() }} total</p>
+            <p class="text-sm mt-0.5" style="color:var(--text-soft)">{{ $events->total() }} total</p>
             @endif
         </div>
         <a href="{{ route('admin.events.create') }}"
@@ -15,9 +15,9 @@
         </a>
     </div>
 
-    <div class="rounded-xl border border-gray-800 overflow-hidden" style="background:#111827">
+    <div class="rounded-xl border overflow-hidden" style="background:var(--panel);border-color:var(--border)">
         <table class="w-full text-sm">
-            <thead class="text-gray-400 uppercase text-xs border-b border-gray-800" style="background:#1f2937">
+            <thead class="uppercase text-xs" style="background:var(--panel-input);color:var(--text-soft);border-bottom:1px solid var(--border)">
                 <tr>
                     <th class="px-6 py-3 text-left">Title</th>
                     <th class="px-6 py-3 text-left">Organizer</th>
@@ -27,12 +27,13 @@
                     <th class="px-6 py-3 text-right">Actions</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-800">
+            <tbody>
                 @forelse($events as $event)
-                <tr class="hover:bg-gray-800/50 transition">
-                    <td class="px-6 py-4 text-white font-medium">{{ $event->title }}</td>
-                    <td class="px-6 py-4 text-gray-400">{{ $event->user->name ?? '-' }}</td>
-                    <td class="px-6 py-4 text-gray-400">{{ $event->category->name ?? '-' }}</td>
+                <tr style="border-bottom:1px solid var(--border)"
+                    onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background='transparent'">
+                    <td class="px-6 py-4 font-medium" style="color:var(--text-strong)">{{ $event->title }}</td>
+                    <td class="px-6 py-4" style="color:var(--text-soft)">{{ $event->user->name ?? '-' }}</td>
+                    <td class="px-6 py-4" style="color:var(--text-soft)">{{ $event->category->name ?? '-' }}</td>
                     <td class="px-6 py-4">
                         <span class="px-2.5 py-1 rounded-full text-xs font-medium
                             {{ $event->status === 'ongoing'   ? 'bg-emerald-900/40 text-emerald-400' :
@@ -42,7 +43,7 @@
                             {{ ucfirst($event->status) }}
                         </span>
                     </td>
-                    <td class="px-6 py-4 text-gray-400">
+                    <td class="px-6 py-4" style="color:var(--text-soft)">
                         {{ $event->start_date ? \Carbon\Carbon::parse($event->start_date)->format('M d, Y') : '-' }}
                     </td>
                     <td class="px-6 py-4 text-right">
@@ -60,7 +61,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="px-6 py-8 text-center text-gray-500">No events found.</td>
+                    <td colspan="6" class="px-6 py-8 text-center" style="color:var(--text-soft)">No events found.</td>
                 </tr>
                 @endforelse
             </tbody>

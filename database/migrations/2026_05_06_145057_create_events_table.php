@@ -20,7 +20,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('venue')->nullable();
             $table->string('address')->nullable();
-            $table->date('event_date');
+            $table->date('event_date') ->nullable();
             $table->date('start_date');
             $table->date('end_date');
             $table->time('start_time');

@@ -46,11 +46,21 @@ class Event extends Model
     protected static function booted(): void
     {
         static::creating(function (Event $event) {
-            $event->slug         = Str::slug($event->title) . '-' . Str::random(6);
-            $event->invite_token = Str::uuid();
+            $event->slug = Str::slug($event->title) . '-' . Str::random(6);
+
+            if (empty($event->invite_token)) {
+                $event->invite_token = (string) Str::uuid();
+            }
+
+            // Give every event a stable attendance token up front so the
+            // check-in QR can always be generated. Whether check-in is
+            // actually open is governed by the event status, not by the
+            // presence of this token.
+            if (empty($event->attendance_token)) {
+                $event->attendance_token = (string) Str::uuid();
+            }
         });
     }
-
     // ─── Helpers ─────────────────────────────────────────────
 
     public function getTotalDaysAttribute(): int

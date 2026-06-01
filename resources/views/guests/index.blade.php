@@ -3,8 +3,8 @@
 
     <div class="flex items-center justify-between">
         <div>
-            <h2 class="text-2xl font-bold text-white">Guest Book</h2>
-            <p class="text-sm mt-1" style="color:#6b7280">{{ $guests->total() }} guests total</p>
+            <h2 class="text-2xl font-bold" style="color:var(--text-strong)">Guest Book</h2>
+            <p class="text-sm mt-1" style="color:var(--text-soft)">{{ $guests->total() }} guests total</p>
         </div>
         <a href="{{ route('guests.create') }}"
            class="inline-flex items-center gap-2 px-4 py-2.5 text-white text-sm font-semibold rounded-xl"
@@ -17,15 +17,15 @@
     </div>
 
     {{-- Search --}}
-    <form method="GET" class="rounded-2xl border p-4" style="background:#0d1117;border-color:rgba(255,255,255,.07)">
+    <form method="GET" class="rounded-2xl border p-4" style="background:var(--panel);border-color:var(--border)">
         <div class="flex gap-3">
             <div class="flex-1 relative">
-                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style="color:#6b7280" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style="color:var(--text-soft)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name or email..."
-                       class="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                       style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)">
+                       class="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                       style="background:var(--input-bg);border:1px solid var(--input-border);color:var(--text)">
             </div>
             <button type="submit"
                     class="px-5 py-2.5 text-white text-sm font-medium rounded-xl"
@@ -33,26 +33,26 @@
             @if(request('search'))
             <a href="{{ route('guests.index') }}"
                class="px-5 py-2.5 text-sm font-medium rounded-xl"
-               style="background:rgba(255,255,255,.06);color:#9ca3af">Clear</a>
+               style="background:var(--input-bg);color:var(--text-soft)">Clear</a>
             @endif
         </div>
     </form>
 
     {{-- Guest table --}}
-    <div class="rounded-2xl border overflow-hidden" style="background:#0d1117;border-color:rgba(255,255,255,.07)">
+    <div class="rounded-2xl border overflow-hidden" style="background:var(--panel);border-color:var(--border)">
         <table class="w-full text-sm">
-            <thead style="border-bottom:1px solid rgba(255,255,255,.07)">
+            <thead style="border-bottom:1px solid var(--border)">
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide" style="color:#6b7280">Guest</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide" style="color:#6b7280">Phone</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide" style="color:#6b7280">Events</th>
-                    <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide" style="color:#6b7280">Actions</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide" style="color:var(--text-soft)">Guest</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide" style="color:var(--text-soft)">Phone</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide" style="color:var(--text-soft)">Events</th>
+                    <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide" style="color:var(--text-soft)">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($guests as $guest)
-                <tr style="border-bottom:1px solid rgba(255,255,255,.05)"
-                    onmouseover="this.style.background='rgba(255,255,255,.02)'"
+                <tr style="border-bottom:1px solid var(--border-soft)"
+                    onmouseover="this.style.background='var(--hover)'"
                     onmouseout="this.style.background='transparent'">
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-3">
@@ -61,12 +61,12 @@
                                 {{ strtoupper(substr($guest->name, 0, 1)) }}
                             </div>
                             <div>
-                                <p class="font-medium text-white">{{ $guest->name }}</p>
-                                <p class="text-xs" style="color:#6b7280">{{ $guest->email ?? '—' }}</p>
+                                <p class="font-medium" style="color:var(--text-strong)">{{ $guest->name }}</p>
+                                <p class="text-xs" style="color:var(--text-soft)">{{ $guest->email ?? '—' }}</p>
                             </div>
                         </div>
                     </td>
-                    <td class="px-6 py-4" style="color:#9ca3af">{{ $guest->phone ?? '—' }}</td>
+                    <td class="px-6 py-4" style="color:var(--text-soft)">{{ $guest->phone ?? '—' }}</td>
                     <td class="px-6 py-4">
                         <span class="text-xs px-2.5 py-1 rounded-full font-medium"
                               style="background:rgba(99,102,241,.12);color:#818cf8;border:1px solid rgba(99,102,241,.2)">
@@ -87,7 +87,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="4" class="px-6 py-14 text-center" style="color:#6b7280">
+                    <td colspan="4" class="px-6 py-14 text-center" style="color:var(--text-soft)">
                         No guests yet. <a href="{{ route('guests.create') }}" class="text-indigo-400 hover:underline">Add your first guest</a>
                     </td>
                 </tr>

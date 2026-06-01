@@ -160,9 +160,20 @@
             </div>
             @if($showQr)
             <div style="background:white;padding:7px;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,.3)">
-                {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(64)->generate(
-                    isset($guestCode) ? $guestCode : ($event->invite_token ?? 'preview')
-                ) !!}
+                @php
+                    $qrPayload = isset($guestCode) ? $guestCode : ($event->invite_token ?? 'preview');
+                    $qrSvg = null;
+                    try {
+                        $qrSvg = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')->size(64)->generate($qrPayload);
+                    } catch (\Throwable $e) {
+                        $qrSvg = null;
+                    }
+                @endphp
+                @if($qrSvg)
+                    {!! $qrSvg !!}
+                @else
+                    <div style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#111;text-align:center">QR</div>
+                @endif
             </div>
             @endif
         </div>

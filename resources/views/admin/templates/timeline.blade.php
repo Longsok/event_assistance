@@ -3,23 +3,25 @@
 
     <div class="mb-6 flex items-center gap-4">
         <a href="{{ route('admin.category-templates.index') }}" class="text-indigo-400 hover:text-indigo-300 text-sm">&larr; Categories</a>
-        <span class="text-gray-600">/</span>
-        <span class="text-white text-sm">Task Templates: {{ $category->name }}</span>
+        <span style="color:var(--text-soft)">/</span>
+        <span class="text-sm" style="color:var(--text-strong)">Task Templates: {{ $category->name }}</span>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-gray-900 rounded-xl border border-gray-800 p-6">
-            <h3 class="text-white font-semibold mb-4">Add Task Template</h3>
+        <div class="rounded-xl border p-6" style="background:var(--panel);border-color:var(--border)">
+            <h3 class="font-semibold mb-4" style="color:var(--text-strong)">Add Task Template</h3>
             <form method="POST" action="{{ route('admin.category-templates.store', $category) }}" class="space-y-4">
                 @csrf
                 <div>
-                    <label class="block text-sm text-gray-400 mb-1">Task Name *</label>
+                    <label class="block text-sm mb-1" style="color:var(--text-soft)">Task Name *</label>
                     <input type="text" name="task_name" value="{{ old('task_name') }}"
-                           class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500" required>
+                           class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+                           style="background:var(--input-bg);border:1px solid var(--input-border);color:var(--text)" required>
                 </div>
                 <div>
-                    <label class="block text-sm text-gray-400 mb-1">Group *</label>
-                    <select name="group_id" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500">
+                    <label class="block text-sm mb-1" style="color:var(--text-soft)">Group *</label>
+                    <select name="group_id" class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+                            style="background:var(--input-bg);border:1px solid var(--input-border);color:var(--text)">
                         @foreach($groups as $group)
                             <option value="{{ $group->id }}">{{ $group->name }}</option>
                         @endforeach
@@ -27,13 +29,15 @@
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-sm text-gray-400 mb-1">Days Before *</label>
+                        <label class="block text-sm mb-1" style="color:var(--text-soft)">Days Before *</label>
                         <input type="number" name="days_before" value="{{ old('days_before', 7) }}"
-                               class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500" required>
+                               class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+                               style="background:var(--input-bg);border:1px solid var(--input-border);color:var(--text)" required>
                     </div>
                     <div>
-                        <label class="block text-sm text-gray-400 mb-1">Priority *</label>
-                        <select name="priority" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500">
+                        <label class="block text-sm mb-1" style="color:var(--text-soft)">Priority *</label>
+                        <select name="priority" class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+                                style="background:var(--input-bg);border:1px solid var(--input-border);color:var(--text)">
                             <option value="high">High</option>
                             <option value="medium">Medium</option>
                             <option value="low">Low</option>
@@ -41,8 +45,9 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm text-gray-400 mb-1">Anchor *</label>
-                    <select name="anchor" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500">
+                    <label class="block text-sm mb-1" style="color:var(--text-soft)">Anchor *</label>
+                    <select name="anchor" class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+                            style="background:var(--input-bg);border:1px solid var(--input-border);color:var(--text)">
                         <option value="before_event">Before Event</option>
                         <option value="first_day">First Day</option>
                         <option value="last_day">Last Day</option>
@@ -56,14 +61,14 @@
             </form>
         </div>
 
-        <div class="bg-gray-900 rounded-xl border border-gray-800 p-6">
-            <h3 class="text-white font-semibold mb-4">Tasks ({{ $templates->count() }})</h3>
+        <div class="rounded-xl border p-6" style="background:var(--panel);border-color:var(--border)">
+            <h3 class="font-semibold mb-4" style="color:var(--text-strong)">Tasks ({{ $templates->count() }})</h3>
             <div class="space-y-2">
                 @forelse ($templates as $template)
-                <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg text-sm">
+                <div class="flex items-center justify-between p-3 rounded-lg text-sm" style="background:var(--panel-input)">
                     <div>
-                        <p class="text-white">{{ $template->task_name }}</p>
-                        <p class="text-gray-500 text-xs">{{ $template->group->name ?? '-' }} · {{ $template->days_before }}d · {{ $template->priority }}</p>
+                        <p style="color:var(--text-strong)">{{ $template->task_name }}</p>
+                        <p class="text-xs" style="color:var(--text-soft)">{{ $template->group->name ?? '-' }} · {{ $template->days_before }}d · {{ $template->priority }}</p>
                     </div>
                     <form method="POST" action="{{ route('admin.category-templates.destroy', [$category, $template]) }}"
                           onsubmit="return confirm('Delete?')">
@@ -72,7 +77,7 @@
                     </form>
                 </div>
                 @empty
-                <p class="text-gray-500 text-sm">No task templates yet.</p>
+                <p class="text-sm" style="color:var(--text-soft)">No task templates yet.</p>
                 @endforelse
             </div>
         </div>

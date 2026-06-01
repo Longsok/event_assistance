@@ -1,8 +1,8 @@
 <x-admin-layout title="Users">
     <div class="flex items-center justify-between mb-6">
         <div>
-            <h2 class="text-xl font-semibold text-white">All Users</h2>
-            <p class="text-sm text-gray-500 mt-0.5">{{ $users->total() }} total</p>
+            <h2 class="text-xl font-semibold" style="color:var(--text-strong)">All Users</h2>
+            <p class="text-sm mt-0.5" style="color:var(--text-soft)">{{ $users->total() }} total</p>
         </div>
         <a href="{{ route('admin.users.create') }}"
            class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition">
@@ -13,9 +13,9 @@
         </a>
     </div>
 
-    <div class="rounded-xl border border-gray-800 overflow-hidden" style="background:#111827">
+    <div class="rounded-xl border overflow-hidden" style="background:var(--panel);border-color:var(--border)">
         <table class="w-full text-sm">
-            <thead class="text-gray-400 uppercase text-xs border-b border-gray-800" style="background:#1f2937">
+            <thead class="uppercase text-xs" style="background:var(--panel-input);color:var(--text-soft);border-bottom:1px solid var(--border)">
                 <tr>
                     <th class="px-6 py-3 text-left">Name</th>
                     <th class="px-6 py-3 text-left">Email</th>
@@ -25,18 +25,19 @@
                     <th class="px-6 py-3 text-right">Actions</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-800">
+            <tbody>
                 @forelse($users as $user)
-                <tr class="hover:bg-gray-800/50 transition">
+                <tr style="border-bottom:1px solid var(--border)"
+                    onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background='transparent'">
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
                                 {{ strtoupper(substr($user->name, 0, 1)) }}
                             </div>
-                            <span class="text-white font-medium">{{ $user->name }}</span>
+                            <span class="font-medium" style="color:var(--text-strong)">{{ $user->name }}</span>
                         </div>
                     </td>
-                    <td class="px-6 py-4 text-gray-400">{{ $user->email }}</td>
+                    <td class="px-6 py-4" style="color:var(--text-soft)">{{ $user->email }}</td>
                     <td class="px-6 py-4">
                         @foreach($user->roles as $role)
                         <span class="px-2 py-1 rounded text-xs font-medium
@@ -45,8 +46,8 @@
                         </span>
                         @endforeach
                     </td>
-                    <td class="px-6 py-4 text-gray-400">{{ $user->events_count ?? 0 }}</td>
-                    <td class="px-6 py-4 text-gray-400">{{ $user->created_at->format('M d, Y') }}</td>
+                    <td class="px-6 py-4" style="color:var(--text-soft)">{{ $user->events_count ?? 0 }}</td>
+                    <td class="px-6 py-4" style="color:var(--text-soft)">{{ $user->created_at->format('M d, Y') }}</td>
                     <td class="px-6 py-4 text-right">
                         <div class="flex items-center justify-end gap-3">
                             <a href="{{ route('admin.users.show', $user) }}"
@@ -62,7 +63,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="px-6 py-8 text-center text-gray-500">No users found.</td>
+                    <td colspan="6" class="px-6 py-8 text-center" style="color:var(--text-soft)">No users found.</td>
                 </tr>
                 @endforelse
             </tbody>

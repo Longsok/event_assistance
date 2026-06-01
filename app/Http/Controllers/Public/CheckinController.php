@@ -10,23 +10,44 @@ use Illuminate\Http\Request;
 
 class CheckinController extends Controller
 {
-    // Show the check-in page — event must have an active attendance_token
     public function show(string $attendanceToken)
     {
-        $event = Event::where('attendance_token', $attendanceToken)
-            ->whereIn('status', ['published', 'ongoing'])
-            ->firstOrFail();
+        $event = Event::where('attendance_token', $attendanceToken)->first();
+
+        // Unknown token -> friendly page, not a raw 404.
+        if (!$event) {
+            return response()->view('public.checkin', [
+                'event'         => null,
+                'checkinClosed' => true,
+                'closedReason'  => 'This check-in link is not valid.',
+            ], 404);
+        }
+
+        // Token is valid but check-in is not currently open for this event.
+        if (!in_array($event->status, ['published', 'ongoing'], true)) {
+            return view('public.checkin', [
+                'event'         => $event,
+                'checkinClosed' => true,
+                'closedReason'  => 'Check-in for this event is not open right now.',
+            ]);
+        }
 
         return view('public.checkin', compact('event'));
     }
 
     // Handle check-in form submission
-    public function store(Request $request, string $attendanceToken)
+   public function store(Request $request, string $attendanceToken)
     {
-        $event = Event::where('attendance_token', $attendanceToken)
-            ->whereIn('status', ['published', 'ongoing'])
-            ->firstOrFail();
+        $event = Event::where('attendance_token', $attendanceToken)->first();
 
+        if (!$event || !in_array($event->status, ['published', 'ongoing'], true)) {
+            return view('public.checkin', [
+                'event'         => $event,
+                'checkinClosed' => true,
+                'closedReason'  => 'Check-in for this event is not open right now.',
+            ]);
+        }
+        
         $request->validate([
             'guest_code' => 'required|string',
             'name'       => 'required|string|max:255',

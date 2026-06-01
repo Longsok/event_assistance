@@ -9,23 +9,14 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureOrganizer
 {
-    public function handle(Request $request, Closure $next): Response
+     public function handle(Request $request, Closure $next): Response
     {
-        if (!Auth::check()) {
-            return redirect()->route('login');
+        if (! Auth::guard('web')->check()) {
+            return redirect()->route('login')->with('status', 'Please log in to continue.');
         }
 
-        // Admin visiting organizer routes → silently redirect to admin dashboard
-        // (do NOT logout — that would destroy their admin session)
-        if (Auth::user()->hasRole('admin')) {
-            return redirect()->route('admin.dashboard');
-        }
-
-        // Must have organizer role
-        if (!Auth::user()->hasRole('organizer')) {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+        if (! Auth::guard('web')->user()->hasRole('organizer')) {
+            Auth::guard('web')->logout();
             return redirect()->route('login')
                 ->withErrors(['email' => 'Your account does not have organizer access.']);
         }

@@ -23,14 +23,4 @@ public function down(): void
         $table->dropColumn(['google_id', 'facebook_id']);
     });
 }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::table('users', function (Blueprint $table) {
-            //
-        });
-    }
 };

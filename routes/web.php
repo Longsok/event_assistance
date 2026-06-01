@@ -56,7 +56,7 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
     Route::get('users/{user}',       [UserController::class, 'show'])->name('users.show');
     Route::delete('users/{user}',    [UserController::class, 'destroy'])->name('users.destroy');
     Route::patch('users/{user}/promote', [UserController::class, 'promoteToAdmin'])->name('users.promote');
-    Route::patch('users/{user}/demote',  [UserController::class, 'demoteToUser'])->name('users.demote');
+   Route::patch('users/{user}/demote',  [UserController::class, 'demoteToOrganizer'])->name('users.demote');
     Route::patch('users/{user}/role', [UserController::class, 'setRole'])->name('users.setRole');
 
     // Events

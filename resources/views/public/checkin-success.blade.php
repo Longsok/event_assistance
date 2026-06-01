@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Welcome — {{ $event->title }}</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @include('partials.assets')
     <style>*{font-family:'Outfit',sans-serif}</style>
 </head>
 <body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">

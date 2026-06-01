@@ -42,4 +42,22 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
+
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            \Spatie\Permission\Models\Role::findOrCreate('organizer', 'web');
+            if (! $user->hasAnyRole(['admin', 'organizer'])) {
+                $user->assignRole('organizer');
+            }
+        });
+    }
+
+    public function admin(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            \Spatie\Permission\Models\Role::findOrCreate('admin', 'web');
+            $user->syncRoles(['admin']);
+        });
+    }
 }

@@ -39,25 +39,32 @@ class AttendanceController extends Controller
         return view('attendance.index', compact('event', 'qrCode', 'checkedIn', 'stats', 'attendanceLogs'));
     }
 
-    // Start check-in — generate attendance token and QR
+    // Start check-in — ensure a token exists and open the event for check-in
     public function startCheckin(Event $event)
     {
         $this->authorizeEvent($event);
 
-        $event->update([
-            'attendance_token' => Str::uuid(),
-            'status'           => 'ongoing',
-        ]);
+        $update = ['status' => 'ongoing'];
+
+        // Token is normally created with the event, but backfill defensively
+        // for any older event that predates that behaviour.
+        if (empty($event->attendance_token)) {
+            $update['attendance_token'] = (string) Str::uuid();
+        }
+
+        $event->update($update);
 
         return back()->with('success', 'Check-in started. QR code is now active.');
     }
 
-    // Stop check-in
+    // Stop check-in — close it for check-in but KEEP the token so the same QR
+    // keeps resolving (the public page shows a "closed" message based on status
+    // rather than 404-ing on a missing token).
     public function stopCheckin(Event $event)
     {
         $this->authorizeEvent($event);
 
-        $event->update(['attendance_token' => null]);
+        $event->update(['status' => 'published']);
 
         return back()->with('success', 'Check-in stopped.');
     }

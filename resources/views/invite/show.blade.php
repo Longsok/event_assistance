@@ -5,47 +5,47 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
             {{ $event->title }}
         </a>
-        <h2 class="text-2xl font-bold text-white">Invite Card</h2>
+        <h2 class="text-2xl font-bold" style="color:var(--text-strong)">Invite Card</h2>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {{-- LEFT: Settings --}}
         <div class="space-y-5">
             {{-- Invite Link --}}
-            <div class="rounded-2xl border p-5" style="background:#0d1117;border-color:rgba(99,102,241,.25)">
+            <div class="rounded-2xl border p-5" style="background:var(--panel);border-color:rgba(99,102,241,.25)">
                 <p class="text-sm font-semibold mb-3" style="color:#818cf8">Public Invite Link</p>
                 <div class="flex gap-2">
                     <input type="text" value="{{ $inviteUrl }}" readonly onclick="this.select()"
-                           class="flex-1 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none min-w-0"
-                           style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)">
+                           class="flex-1 rounded-xl px-3 py-2.5 text-sm focus:outline-none min-w-0"
+                           style="background:var(--input-bg);border:1px solid var(--input-border);color:var(--text)">
                     <button onclick="copyLink(this)" data-url="{{ $inviteUrl }}"
                             class="px-4 py-2.5 text-white text-sm font-medium rounded-xl flex-shrink-0"
                             style="background:linear-gradient(135deg,#4f46e5,#7c3aed)">
                         Copy
                     </button>
                 </div>
-                <p class="text-xs mt-2" style="color:#6b7280">Share this link with guests to let them self-register.</p>
+                <p class="text-xs mt-2" style="color:var(--text-soft)">Share this link with guests to let them self-register.</p>
             </div>
 
             {{-- Settings Form --}}
-            <div class="rounded-2xl border p-5" style="background:#0d1117;border-color:rgba(255,255,255,.07)">
-                <h3 class="font-semibold text-white mb-4">Invite Card Settings</h3>
+            <div class="rounded-2xl border p-5" style="background:var(--panel);border-color:var(--border)">
+                <h3 class="font-semibold mb-4" style="color:var(--text-strong)">Invite Card Settings</h3>
                 <form method="POST" action="{{ route('events.invite.update', $event) }}" class="space-y-4" id="settings-form">
                     @csrf @method('PATCH')
 
                     {{-- Template Style --}}
                     <div>
-                        <label class="block text-sm font-medium mb-2" style="color:#9ca3af">Template Style</label>
+                        <label class="block text-sm font-medium mb-2" style="color:var(--text-soft)">Template Style</label>
                         <div class="grid grid-cols-3 gap-2">
                             @foreach(['classic'=>'🏛️ Classic','elegant'=>'✨ Elegant','minimal'=>'◻️ Minimal'] as $val=>$label)
                             <label class="cursor-pointer">
                                 <input type="radio" name="template_style" value="{{ $val }}"
                                        class="sr-only peer" onchange="updatePreview()"
                                        {{ ($inviteCard?->template_style ?? 'classic')===$val ? 'checked' : '' }}>
-                                <div class="border rounded-xl py-2 text-center text-xs font-medium transition text-gray-400 peer-checked:text-indigo-300"
-                                     style="border-color:rgba(255,255,255,.1);background:rgba(255,255,255,.04)"
+                                <div class="border rounded-xl py-2 text-center text-xs font-medium transition peer-checked:text-indigo-300"
+                                     style="border-color:var(--input-border);background:var(--input-bg);color:var(--text-soft)"
                                      onmouseover="this.style.borderColor='rgba(99,102,241,.4)'"
-                                     onmouseout="this.style.borderColor='rgba(255,255,255,.1)'">
+                                     onmouseout="this.style.borderColor='var(--input-border)'">
                                     {{ $label }}
                                 </div>
                             </label>
@@ -62,25 +62,22 @@
                                        onchange="updatePreview()"
                                        {{ $inviteCard?->$field ? 'checked' : '' }}
                                        class="sr-only peer">
-                                <div class="w-10 h-6 rounded-full transition" style="background:rgba(255,255,255,.1)"
-                                     :class="...">
-                                    <div class="w-10 h-6 rounded-full peer-checked:bg-indigo-600 transition" style="background:rgba(255,255,255,.1)"></div>
-                                </div>
+                                <div class="w-10 h-6 rounded-full transition peer-checked:bg-indigo-600" style="background:var(--input-bg)"></div>
                                 <div class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition peer-checked:translate-x-4"></div>
                             </div>
-                            <span class="text-sm" style="color:#9ca3af">{{ $info['icon'] }} {{ $info['label'] }}</span>
+                            <span class="text-sm" style="color:var(--text-soft)">{{ $info['icon'] }} {{ $info['label'] }}</span>
                         </label>
                         @endforeach
                     </div>
 
                     {{-- Custom Message --}}
                     <div>
-                        <label class="block text-sm font-medium mb-1.5" style="color:#9ca3af">Custom Message</label>
+                        <label class="block text-sm font-medium mb-1.5" style="color:var(--text-soft)">Custom Message</label>
                         <textarea name="custom_message" rows="3" id="custom_message"
                                   oninput="updatePreview()"
                                   placeholder="e.g. We warmly invite you to join us for this special occasion..."
-                                  class="w-full rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
-                                  style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)">{{ $inviteCard?->custom_message }}</textarea>
+                                  class="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
+                                  style="background:var(--input-bg);border:1px solid var(--input-border);color:var(--text)">{{ $inviteCard?->custom_message }}</textarea>
                     </div>
 
                     @if(session('success'))
@@ -101,15 +98,15 @@
         {{-- RIGHT: Card Preview --}}
         <div class="lg:sticky lg:top-6 self-start">
             <div class="flex items-center justify-between mb-3">
-                <p class="text-xs font-semibold uppercase tracking-wide" style="color:#6b7280">Card Preview</p>
+                <p class="text-xs font-semibold uppercase tracking-wide" style="color:var(--text-soft)">Card Preview</p>
                 <a href="{{ route('events.invite.guests', $event) }}" class="text-xs hover:underline" style="color:#818cf8">
                     View all guest cards →
                 </a>
             </div>
-            <div id="invite-preview" class="rounded-2xl overflow-hidden shadow-2xl" style="border:1px solid rgba(255,255,255,.1)">
+            <div id="invite-preview" class="rounded-2xl overflow-hidden shadow-2xl" style="border:1px solid var(--border)">
                 @include('invite.partials.card-preview', ['event'=>$event,'inviteCard'=>$inviteCard,'guestName'=>'Guest Name'])
             </div>
-            <p class="text-xs text-center mt-3" style="color:#6b7280">
+            <p class="text-xs text-center mt-3" style="color:var(--text-soft)">
                 Preview updates live. Each guest will have their own name and QR code.
             </p>
         </div>

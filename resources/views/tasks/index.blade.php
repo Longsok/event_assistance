@@ -37,7 +37,6 @@
                     <option value="medium">Medium</option>
                     <option value="high">High</option>
                     <option value="low">Low</option>
-                    <option value="critical">Critical</option>
                 </select>
             </div>
             <div>

@@ -21,39 +21,41 @@ class DatabaseSeeder extends Seeder
      * Run with:  php artisan db:seed
      * Re-run safely (firstOrCreate is idempotent).
      */
-    public function run(): void
+   public function run(): void
     {
-        // ── 1. Create roles ───────────────────────────────────────────────
-        $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
-        $userRole  = Role::firstOrCreate(['name' => 'user',  'guard_name' => 'web']);
+        // ── 1. Roles (ONLY admin + organizer — no generic "user") ──
+        $adminRole     = Role::firstOrCreate(['name' => 'admin',     'guard_name' => 'web']);
+        $organizerRole = Role::firstOrCreate(['name' => 'organizer', 'guard_name' => 'web']);
 
-        // ── 2. Create / update admin user ─────────────────────────────────
+        // Migrate any legacy "user" role holders to organizer, then drop it.
+        $legacyUserRole = Role::where('name', 'user')->where('guard_name', 'web')->first();
+        if ($legacyUserRole) {
+            foreach (User::role('user')->get() as $legacyUser) {
+                $legacyUser->syncRoles([$organizerRole]);
+            }
+            $legacyUserRole->delete();
+        }
+
+        // ── 2. Admin user ──
         $admin = User::firstOrCreate(
             ['email' => 'soklongyoung03@gmail.com'],
-            [
-                'name'     => 'Admin Long',
-                'password' => Hash::make('long123456'),
-            ]
+            ['name' => 'Admin Long', 'password' => Hash::make('long123456')]
         );
-        // Sync so running multiple times won't stack roles
-        $admin->syncRoles([$adminRole]);
+        $admin->syncRoles([$adminRole]); // admin is ONLY admin
 
-        // ── 3. Create a sample organizer (regular user) ───────────────────
+        // ── 3. Sample organizer ──
         $organizer = User::firstOrCreate(
             ['email' => 'soklong260@gmail.com'],
-            [
-                'name'     => 'Long',
-                'password' => Hash::make('long123456'),
-            ]
+            ['name' => 'Long', 'password' => Hash::make('long123456')]
         );
-        $organizer->syncRoles([$userRole]);
+        $organizer->syncRoles([$organizerRole]);
 
         $this->command->info('Seeding complete.');
         $this->command->table(
             ['Role', 'Email', 'Password'],
             [
-                ['admin', 'soklongyoung03@gmail.com',     'long123456'],
-                ['user',  'soklong260@gmail.com', 'long123456'],
+                ['admin',     'soklongyoung03@gmail.com', 'long123456'],
+                ['organizer', 'soklong260@gmail.com',     'long123456'],
             ]
         );
     }

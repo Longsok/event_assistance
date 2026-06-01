@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('event_guest_id')->constrained('event_guests')->cascadeOnDelete();
             $table->foreignId('scanned_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->enum('scan_method', ['self', 'manual'])->default('self');
+            $table->enum('scan_method', ['self', 'manual', 'qr_scan'])->default('manual');
             $table->timestamp('checked_in_at');
             $table->text('notes')->nullable();
             $table->timestamps();

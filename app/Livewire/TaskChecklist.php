@@ -3,6 +3,8 @@
 namespace App\Livewire;
 
 use App\Models\Event;
+use App\Models\TaskGroup;
+use App\Models\EventTask;
 use Livewire\Component;
 use Carbon\Carbon;
 
@@ -10,6 +12,13 @@ class TaskChecklist extends Component
 {
     public Event $event;
     public array $expandedGroups = [];
+
+    // Inline "Add Task" form fields
+    public string $newTaskName = '';
+    public string $newTaskGroup = '';
+    public string $newTaskDue = '';
+    public string $newTaskPriority = 'medium';
+    public bool $showAddForm = false;
 
     public function mount(Event $event): void
     {
@@ -89,6 +98,42 @@ class TaskChecklist extends Component
         return array_values($buckets);
     }
 
+    public function addTask(): void
+    {
+        $this->validate([
+            'newTaskName'     => 'required|string|max:255',
+            'newTaskGroup'    => 'required|exists:task_groups,id',
+            'newTaskDue'      => 'required|date',
+            'newTaskPriority' => 'required|in:high,medium,low',
+        ], [], [
+            'newTaskName'  => 'task name',
+            'newTaskGroup' => 'group',
+            'newTaskDue'   => 'due date',
+        ]);
+
+        $due = Carbon::parse($this->newTaskDue);
+
+        EventTask::create([
+            'event_id'          => $this->event->id,
+            'group_id'          => $this->newTaskGroup,
+            'task_name'         => $this->newTaskName,
+            'due_date'          => $due,
+            'original_due_date' => $due,
+            'priority'          => $this->newTaskPriority,
+            'status'            => $due->isPast() ? 'overdue' : 'pending',
+            'is_custom'         => true,
+            'is_late'           => $due->isPast(),
+            'sort_order'        => EventTask::where('event_id', $this->event->id)
+                                            ->where('group_id', $this->newTaskGroup)
+                                            ->max('sort_order') + 1,
+        ]);
+
+        // Reset the form
+        $this->reset(['newTaskName', 'newTaskGroup', 'newTaskDue', 'newTaskPriority']);
+        $this->newTaskPriority = 'medium';
+        $this->showAddForm = false;
+    }
+
     public function render()
     {
         $groups  = $this->buildGroups();
@@ -102,6 +147,7 @@ class TaskChecklist extends Component
             'groups'         => $groups,
             'expandedGroups' => $this->expandedGroups,
             'progress'       => compact('total', 'done', 'overdue', 'pct'),
+            'taskGroups'     => TaskGroup::orderBy('sort_order')->get(),
         ]);
     }
 }

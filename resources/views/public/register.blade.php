@@ -6,7 +6,7 @@
     <title>{{ $event->title }}</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=outfit:300,400,500,600,700,800&display=swap" rel="stylesheet"/>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @include('partials.assets')
     <style>
         *{font-family:'Outfit',sans-serif}
         @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
@@ -158,7 +158,19 @@
                     </div>
                     @if($showQr)
                     <div style="background:white;padding:8px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.3)">
-                        {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(70)->generate($guestCode) !!}
+                        @php
+                            $qrSvg = null;
+                            try {
+                                $qrSvg = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')->size(70)->generate($guestCode);
+                            } catch (\Throwable $e) {
+                                $qrSvg = null;
+                            }
+                        @endphp
+                        @if($qrSvg)
+                            {!! $qrSvg !!}
+                        @else
+                            <div style="width:70px;height:70px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#111;text-align:center">QR</div>
+                        @endif
                     </div>
                     @endif
                 </div>

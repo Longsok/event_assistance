@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('guest_id')->constrained('guests')->cascadeOnDelete();
             $table->string('guest_code')->unique();
             // e.g. CONF-2025-001 — used for event day check-in
-            $table->enum('rsvp_status', ['pending','confirmed','declined'])->default('pending');
+            $table->enum('rsvp_status', ['pending','confirmed','declined', 'attended'])->default('pending');
             $table->enum('registered_via', ['organizer','invite_link','csv_import'])->default('organizer');
             $table->string('seat_number')->nullable();
             $table->string('meal_preference')->nullable();

@@ -3,7 +3,7 @@
 {{-- Background effects --}}
 <div class="fixed inset-0 pointer-events-none overflow-hidden" style="z-index:0">
     <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:800px;height:400px;background:radial-gradient(ellipse at 50% 0%,rgba(79,70,229,.15),transparent 70%)"></div>
-    <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:48px 48px"></div>
+    <div style="position:absolute;inset:0;background-image:linear-gradient(var(--grid,rgba(255,255,255,.02)) 1px,transparent 1px),linear-gradient(90deg,var(--grid,rgba(255,255,255,.02)) 1px,transparent 1px);background-size:48px 48px"></div>
 </div>
 
 <div class="relative z-10 py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-7">
@@ -14,11 +14,11 @@
             <p class="text-xs font-medium uppercase tracking-widest mb-1" style="color:#6366f1">
                 {{ now()->format('l, M d Y') }}
             </p>
-            <h1 class="text-2xl font-bold text-white">
+            <h1 class="text-2xl font-bold" style="color:var(--text-strong)">
                 {{ now()->hour < 12 ? 'Good morning' : (now()->hour < 18 ? 'Good afternoon' : 'Good evening') }},
                 {{ explode(' ', auth()->user()->name)[0] }} 👋
             </h1>
-            <p class="text-sm mt-1" style="color:#6b7280">Here's what's happening with your events.</p>
+            <p class="text-sm mt-1" style="color:var(--text-soft)">Here's what's happening with your events.</p>
         </div>
         <a href="{{ route('events.create') }}"
            class="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 text-white text-sm font-semibold rounded-xl transition"
@@ -41,14 +41,14 @@
         ];
         @endphp
         @foreach($statCards as $s)
-        <div class="rounded-2xl p-5 border" style="background:#0d1117;border-color:{{ $s['border'] }}">
+        <div class="rounded-2xl p-5 border" style="background:var(--panel);border-color:{{ $s['border'] }}">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style="background:{{ $s['bg'] }}">
                 <svg class="w-5 h-5" style="color:{{ $s['color'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="{{ $s['icon'] }}"/>
                 </svg>
             </div>
-            <p class="text-2xl font-bold text-white">{{ $s['value'] }}</p>
-            <p class="text-xs mt-1" style="color:#6b7280">{{ $s['label'] }}</p>
+            <p class="text-2xl font-bold" style="color:var(--text-strong)">{{ $s['value'] }}</p>
+            <p class="text-xs mt-1" style="color:var(--text-soft)">{{ $s['label'] }}</p>
         </div>
         @endforeach
     </div>
@@ -57,25 +57,25 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {{-- Upcoming Events --}}
-        <div class="lg:col-span-2 rounded-2xl overflow-hidden border" style="background:#0d1117;border-color:rgba(255,255,255,.07)">
-            <div class="flex items-center justify-between px-6 py-4" style="border-bottom:1px solid rgba(255,255,255,.07)">
-                <h3 class="font-semibold text-white">Upcoming Events</h3>
+        <div class="lg:col-span-2 rounded-2xl overflow-hidden border" style="background:var(--panel);border-color:var(--border)">
+            <div class="flex items-center justify-between px-6 py-4" style="border-bottom:1px solid var(--border)">
+                <h3 class="font-semibold" style="color:var(--text-strong)">Upcoming Events</h3>
                 <a href="{{ route('events.index') }}" class="text-xs hover:underline" style="color:#818cf8">View all →</a>
             </div>
             @forelse($upcomingEvents as $event)
             <a href="{{ route('events.show', $event) }}"
                class="flex items-center gap-4 px-6 py-4 transition group"
-               style="border-bottom:1px solid rgba(255,255,255,.05)"
-               onmouseover="this.style.background='rgba(255,255,255,.03)'"
+               style="border-bottom:1px solid var(--border-soft)"
+               onmouseover="this.style.background='var(--hover)'"
                onmouseout="this.style.background='transparent'">
                 <div class="w-12 h-12 rounded-xl flex flex-col items-center justify-center flex-shrink-0 border"
                      style="background:rgba(79,70,229,.12);border-color:rgba(99,102,241,.25)">
                     <span class="text-xs font-bold leading-none" style="color:#818cf8">{{ $event->start_date->format('M') }}</span>
-                    <span class="text-lg font-bold text-white leading-none">{{ $event->start_date->format('d') }}</span>
+                    <span class="text-lg font-bold leading-none" style="color:var(--text-strong)">{{ $event->start_date->format('d') }}</span>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="font-medium text-white truncate group-hover:text-indigo-300 transition">{{ $event->title }}</p>
-                    <p class="text-xs mt-0.5 truncate" style="color:#6b7280">
+                    <p class="font-medium truncate group-hover:text-indigo-300 transition" style="color:var(--text-strong)">{{ $event->title }}</p>
+                    <p class="text-xs mt-0.5 truncate" style="color:var(--text-soft)">
                         {{ $event->category->name ?? '—' }}
                         @if($event->venue) · {{ $event->venue }} @endif
                         · {{ $event->event_guests_count ?? 0 }} guests
@@ -96,7 +96,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                 </div>
-                <p class="text-sm mb-4" style="color:#6b7280">No upcoming events yet.</p>
+                <p class="text-sm mb-4" style="color:var(--text-soft)">No upcoming events yet.</p>
                 <a href="{{ route('events.create') }}"
                    class="inline-block px-5 py-2 text-white text-sm font-medium rounded-xl transition"
                    style="background:linear-gradient(135deg,#4f46e5,#7c3aed)">
@@ -107,9 +107,9 @@
         </div>
 
         {{-- Overdue Tasks --}}
-        <div class="rounded-2xl overflow-hidden border" style="background:#0d1117;border-color:rgba(255,255,255,.07)">
-            <div class="px-5 py-4 flex items-center justify-between" style="border-bottom:1px solid rgba(255,255,255,.07)">
-                <h3 class="font-semibold text-white">Overdue Tasks</h3>
+        <div class="rounded-2xl overflow-hidden border" style="background:var(--panel);border-color:var(--border)">
+            <div class="px-5 py-4 flex items-center justify-between" style="border-bottom:1px solid var(--border)">
+                <h3 class="font-semibold" style="color:var(--text-strong)">Overdue Tasks</h3>
                 @if($stats['overdue_tasks'] > 0)
                 <span class="text-xs px-2 py-0.5 rounded-full font-bold" style="background:rgba(251,146,60,.15);color:#fb923c">
                     {{ $stats['overdue_tasks'] }}
@@ -117,13 +117,13 @@
                 @endif
             </div>
             @forelse($overdueTasks as $task)
-            <div class="px-5 py-3.5" style="border-bottom:1px solid rgba(255,255,255,.05)">
+            <div class="px-5 py-3.5" style="border-bottom:1px solid var(--border-soft)">
                 <div class="flex items-start gap-2">
                     <div class="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0" style="background:#fb923c"></div>
                     <div class="min-w-0">
-                        <p class="text-sm text-white truncate">{{ $task->task_name }}</p>
+                        <p class="text-sm truncate" style="color:var(--text-strong)">{{ $task->task_name }}</p>
                         <div class="flex items-center justify-between gap-2 mt-0.5">
-                            <p class="text-xs truncate" style="color:#6b7280">{{ $task->event->title }}</p>
+                            <p class="text-xs truncate" style="color:var(--text-soft)">{{ $task->event->title }}</p>
                             <span class="text-xs font-medium flex-shrink-0" style="color:#fb923c">
                                 {{ $task->due_date->format('M d') }}
                             </span>
@@ -138,7 +138,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                     </svg>
                 </div>
-                <p class="text-sm" style="color:#6b7280">All tasks on track!</p>
+                <p class="text-sm" style="color:var(--text-soft)">All tasks on track!</p>
             </div>
             @endforelse
         </div>
@@ -146,9 +146,9 @@
 
     {{-- Recent Check-ins --}}
     @if($recentCheckIns->count())
-    <div class="rounded-2xl overflow-hidden border" style="background:#0d1117;border-color:rgba(255,255,255,.07)">
-        <div class="px-6 py-4" style="border-bottom:1px solid rgba(255,255,255,.07)">
-            <h3 class="font-semibold text-white flex items-center gap-2">
+    <div class="rounded-2xl overflow-hidden border" style="background:var(--panel);border-color:var(--border)">
+        <div class="px-6 py-4" style="border-bottom:1px solid var(--border)">
+            <h3 class="font-semibold flex items-center gap-2" style="color:var(--text-strong)">
                 <span class="w-2 h-2 rounded-full bg-emerald-400" style="animation:pulse 2s infinite"></span>
                 Recent Check-ins
             </h3>
@@ -162,8 +162,8 @@
                     {{ strtoupper(substr($log->eventGuest->guest->name ?? '?', 0, 1)) }}
                 </div>
                 <div>
-                    <p class="text-sm font-medium text-white">{{ $log->eventGuest->guest->name ?? '—' }}</p>
-                    <p class="text-xs" style="color:#6b7280">{{ $log->checked_in_at->format('H:i') }}</p>
+                    <p class="text-sm font-medium" style="color:var(--text-strong)">{{ $log->eventGuest->guest->name ?? '—' }}</p>
+                    <p class="text-xs" style="color:var(--text-soft)">{{ $log->checked_in_at->format('H:i') }}</p>
                 </div>
             </div>
             @endforeach
@@ -181,16 +181,16 @@
         ] as $qa)
         <a href="{{ route($qa['route']) }}"
            class="rounded-2xl p-4 border transition group"
-           style="background:#0d1117;border-color:{{ $qa['border'] }}"
-           onmouseover="this.style.background='rgba(255,255,255,.03)'"
-           onmouseout="this.style.background='#0d1117'">
+           style="background:var(--panel);border-color:{{ $qa['border'] }}"
+           onmouseover="this.style.background='var(--hover)'"
+           onmouseout="this.style.background='var(--panel)'">
             <div class="w-9 h-9 rounded-xl flex items-center justify-center mb-3" style="background:{{ $qa['bg'] }}">
                 <svg class="w-4 h-4" style="color:{{ $qa['color'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="{{ $qa['icon'] }}"/>
                 </svg>
             </div>
-            <p class="text-sm font-semibold text-white">{{ $qa['label'] }}</p>
-            <p class="text-xs mt-0.5" style="color:#6b7280">{{ $qa['sub'] }}</p>
+            <p class="text-sm font-semibold" style="color:var(--text-strong)">{{ $qa['label'] }}</p>
+            <p class="text-xs mt-0.5" style="color:var(--text-soft)">{{ $qa['sub'] }}</p>
         </a>
         @endforeach
     </div>

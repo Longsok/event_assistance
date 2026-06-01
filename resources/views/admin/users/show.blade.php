@@ -1,12 +1,12 @@
 <x-admin-layout title="User Detail">
     <div class="mb-6">
-        <a href="{{ route('admin.users.index') }}" class="text-slate-400 text-sm hover:text-white">
+        <a href="{{ route('admin.users.index') }}" class="text-sm hover:underline" style="color:#818cf8">
             &larr; Back to Users
         </a>
     </div>
 
     {{-- Profile card --}}
-    <div class="rounded-xl border border-gray-800 p-6 mb-6" style="background:#111827">
+    <div class="rounded-xl border p-6 mb-6" style="background:var(--panel);border-color:var(--border)">
 
         {{-- Header row --}}
         <div class="flex items-start justify-between gap-4 mb-6">
@@ -15,9 +15,9 @@
                     {{ strtoupper(substr($user->name, 0, 1)) }}
                 </div>
                 <div>
-                    <h2 class="text-xl font-bold text-white">{{ $user->name }}</h2>
-                    <p class="text-gray-400 text-sm">{{ $user->email }}</p>
-                    <p class="text-gray-600 text-xs mt-0.5">Joined {{ $user->created_at->format('M d, Y') }}</p>
+                    <h2 class="text-xl font-bold" style="color:var(--text-strong)">{{ $user->name }}</h2>
+                    <p class="text-sm" style="color:var(--text-soft)">{{ $user->email }}</p>
+                    <p class="text-xs mt-0.5" style="color:var(--text-soft)">Joined {{ $user->created_at->format('M d, Y') }}</p>
                 </div>
             </div>
 
@@ -42,24 +42,9 @@
 
         {{-- Role buttons + delete --}}
         @if($user->id !== auth()->id())
-        <div class="border-t border-gray-800 pt-5">
-            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Manage Role</p>
-            <div class="flex flex-wrap gap-2">
-
-                {{-- Set as User --}}
-                <form method="POST" action="{{ route('admin.users.setRole', $user) }}">
-                    @csrf @method('PATCH')
-                    <input type="hidden" name="role" value="user">
-                    <button type="submit"
-                            onclick="return confirm('Set {{ addslashes($user->name) }} as plain User? They will lose organizer/admin access.')"
-                            class="px-4 py-2 rounded-lg text-sm font-medium transition
-                                   {{ !$user->hasRole('organizer') && !$user->hasRole('admin')
-                                        ? 'bg-gray-700 text-gray-200 border border-gray-500 opacity-60 cursor-default'
-                                        : 'bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 hover:border-gray-500' }}"
-                            {{ !$user->hasRole('organizer') && !$user->hasRole('admin') ? 'disabled' : '' }}>
-                        Set as User
-                    </button>
-                </form>
+        <div class="pt-5" style="border-top:1px solid var(--border)">
+            <p class="text-xs font-semibold uppercase tracking-wider mb-3" style="color:var(--text-soft)">Manage Role</p>
+            <div class="flex flex-wrap gap-2 items-center">
 
                 {{-- Set as Organizer --}}
                 <form method="POST" action="{{ route('admin.users.setRole', $user) }}">
@@ -92,16 +77,17 @@
                 </form>
 
                 {{-- Divider --}}
-                <div class="w-px bg-gray-800 mx-1"></div>
+                <div class="w-px mx-1 self-stretch" style="background:var(--border)"></div>
 
                 {{-- Delete --}}
                 <form method="POST" action="{{ route('admin.users.destroy', $user) }}"
                       onsubmit="return confirm('Permanently delete {{ addslashes($user->name) }}? All their data will be removed.')">
                     @csrf @method('DELETE')
                     <button type="submit"
-                            class="px-4 py-2 rounded-lg text-sm font-medium transition
-                                   bg-gray-900 hover:bg-gray-800 text-gray-500 hover:text-gray-300
-                                   border border-gray-800 hover:border-gray-600">
+                            class="px-4 py-2 rounded-lg text-sm font-medium transition"
+                            style="background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.25)"
+                            onmouseover="this.style.background='rgba(239,68,68,.2)'"
+                            onmouseout="this.style.background='rgba(239,68,68,.1)'">
                         Delete User
                     </button>
                 </form>
@@ -109,53 +95,54 @@
             </div>
 
             {{-- Status hint --}}
-            <p class="text-xs text-gray-600 mt-3">
+            <p class="text-xs mt-3" style="color:var(--text-soft)">
                 @if($user->hasRole('admin'))
-                    Currently <span class="text-violet-500">Admin</span> — can manage the entire system.
+                    Currently <span style="color:#a78bfa">Admin</span> — can manage the entire system.
                 @elseif($user->hasRole('organizer'))
-                    Currently <span class="text-indigo-500">Organizer</span> — can create and manage events.
+                    Currently <span style="color:#818cf8">Organizer</span> — can create and manage events.
                 @else
-                    Currently <span class="text-gray-400">User</span> — no special permissions.
+                    Currently <span style="color:var(--text-strong)">User</span> — no special permissions.
                 @endif
             </p>
         </div>
         @else
-        <div class="border-t border-gray-800 pt-4">
-            <p class="text-xs text-gray-600">This is your own account — role changes and deletion are disabled.</p>
+        <div class="pt-4" style="border-top:1px solid var(--border)">
+            <p class="text-xs" style="color:var(--text-soft)">This is your own account — role changes and deletion are disabled.</p>
         </div>
         @endif
     </div>
 
     {{-- Stats --}}
     <div class="grid grid-cols-3 gap-4 mb-6">
-        <div class="rounded-xl border border-gray-800 p-4 text-center" style="background:#111827">
-            <p class="text-2xl font-bold text-white">{{ $user->events->count() }}</p>
-            <p class="text-xs text-gray-500 mt-1">Events</p>
+        <div class="rounded-xl border p-4 text-center" style="background:var(--panel);border-color:var(--border)">
+            <p class="text-2xl font-bold" style="color:var(--text-strong)">{{ $user->events->count() }}</p>
+            <p class="text-xs mt-1" style="color:var(--text-soft)">Events</p>
         </div>
-        <div class="rounded-xl border border-gray-800 p-4 text-center" style="background:#111827">
-            <p class="text-2xl font-bold text-white">
+        <div class="rounded-xl border p-4 text-center" style="background:var(--panel);border-color:var(--border)">
+            <p class="text-2xl font-bold" style="color:var(--text-strong)">
                 {{ $user->events->sum(fn($e) => $e->eventGuests->count()) }}
             </p>
-            <p class="text-xs text-gray-500 mt-1">Total Guests</p>
+            <p class="text-xs mt-1" style="color:var(--text-soft)">Total Guests</p>
         </div>
-        <div class="rounded-xl border border-gray-800 p-4 text-center" style="background:#111827">
-            <p class="text-2xl font-bold text-white">
+        <div class="rounded-xl border p-4 text-center" style="background:var(--panel);border-color:var(--border)">
+            <p class="text-2xl font-bold" style="color:var(--text-strong)">
                 {{ $user->events->where('status', 'completed')->count() }}
             </p>
-            <p class="text-xs text-gray-500 mt-1">Completed Events</p>
+            <p class="text-xs mt-1" style="color:var(--text-soft)">Completed Events</p>
         </div>
     </div>
 
     {{-- Events list --}}
-    <div class="rounded-xl border border-gray-800 overflow-hidden" style="background:#111827">
-        <div class="px-6 py-4 border-b border-gray-800">
-            <h3 class="text-white font-semibold">Events ({{ $user->events->count() }})</h3>
+    <div class="rounded-xl border overflow-hidden" style="background:var(--panel);border-color:var(--border)">
+        <div class="px-6 py-4" style="border-bottom:1px solid var(--border)">
+            <h3 class="font-semibold" style="color:var(--text-strong)">Events ({{ $user->events->count() }})</h3>
         </div>
         @forelse($user->events as $event)
-        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-800 last:border-0 hover:bg-gray-800/50 transition">
+        <div class="flex items-center justify-between px-6 py-4 transition" style="border-bottom:1px solid var(--border)"
+             onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background='transparent'">
             <div class="min-w-0">
-                <p class="text-sm font-medium text-white truncate">{{ $event->title }}</p>
-                <p class="text-xs text-gray-500 mt-0.5">
+                <p class="text-sm font-medium truncate" style="color:var(--text-strong)">{{ $event->title }}</p>
+                <p class="text-xs mt-0.5" style="color:var(--text-soft)">
                     {{ $event->category->name ?? '-' }} &middot;
                     {{ $event->start_date ? \Carbon\Carbon::parse($event->start_date)->format('M d, Y') : '-' }}
                 </p>
@@ -173,7 +160,7 @@
             </div>
         </div>
         @empty
-        <div class="px-6 py-10 text-center text-gray-500 text-sm">No events yet.</div>
+        <div class="px-6 py-10 text-center text-sm" style="color:var(--text-soft)">No events yet.</div>
         @endforelse
     </div>
 </x-admin-layout>

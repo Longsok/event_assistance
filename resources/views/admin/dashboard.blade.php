@@ -9,53 +9,55 @@
         ];
         @endphp
         @foreach($cards as $c)
-        <div class="rounded-xl p-5 flex items-center gap-4 border border-gray-800" style="background:#111827">
+        <div class="rounded-xl p-5 flex items-center gap-4 border" style="background:var(--panel);border-color:var(--border)">
             <div class="w-11 h-11 rounded-xl {{ $c['bg'] }} border {{ $c['border'] }} flex items-center justify-center shrink-0">
                 <svg class="w-5 h-5 {{ $c['color'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="{{ $c['icon'] }}"/></svg>
             </div>
             <div>
-                <p class="text-2xl font-bold text-white">{{ number_format($c['value']) }}</p>
-                <p class="text-xs text-gray-500 mt-0.5">{{ $c['label'] }}</p>
+                <p class="text-2xl font-bold" style="color:var(--text-strong)">{{ number_format($c['value']) }}</p>
+                <p class="text-xs mt-0.5" style="color:var(--text-soft)">{{ $c['label'] }}</p>
             </div>
         </div>
         @endforeach
     </div>
 
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
-        <div class="xl:col-span-2 rounded-xl border border-gray-800 overflow-hidden" style="background:#111827">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-800">
-                <h3 class="font-semibold text-white">Recent Events</h3>
+        <div class="xl:col-span-2 rounded-xl border overflow-hidden" style="background:var(--panel);border-color:var(--border)">
+            <div class="flex items-center justify-between px-6 py-4" style="border-bottom:1px solid var(--border)">
+                <h3 class="font-semibold" style="color:var(--text-strong)">Recent Events</h3>
                 <a href="{{ route('admin.events.index') }}" class="text-xs text-indigo-400 hover:text-indigo-300">View all</a>
             </div>
             @forelse($recentEvents as $event)
-            <a href="{{ route('admin.events.show', $event) }}" class="flex items-center gap-4 px-6 py-4 border-b border-gray-800 last:border-0 hover:bg-gray-800/50 transition">
+            <a href="{{ route('admin.events.show', $event) }}" class="flex items-center gap-4 px-6 py-4 transition"
+               style="border-bottom:1px solid var(--border)"
+               onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background='transparent'">
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-white truncate">{{ $event->title }}</p>
-                    <p class="text-xs text-gray-500 mt-0.5">{{ $event->user->name ?? '-' }} &middot; {{ $event->category->name ?? '-' }}</p>
+                    <p class="text-sm font-medium truncate" style="color:var(--text-strong)">{{ $event->title }}</p>
+                    <p class="text-xs mt-0.5" style="color:var(--text-soft)">{{ $event->user->name ?? '-' }} &middot; {{ $event->category->name ?? '-' }}</p>
                 </div>
                 <span class="text-xs px-2.5 py-1 rounded-full {{ $event->status==='ongoing' ? 'bg-emerald-900/40 text-emerald-400' : 'bg-gray-800 text-gray-400' }}">{{ $event->status }}</span>
             </a>
             @empty
-            <p class="px-6 py-8 text-center text-gray-500 text-sm">No events yet.</p>
+            <p class="px-6 py-8 text-center text-sm" style="color:var(--text-soft)">No events yet.</p>
             @endforelse
         </div>
 
-        <div class="rounded-xl border border-gray-800 overflow-hidden" style="background:#111827">
-            <div class="px-6 py-4 border-b border-gray-800">
-                <h3 class="font-semibold text-white">Recent Users</h3>
+        <div class="rounded-xl border overflow-hidden" style="background:var(--panel);border-color:var(--border)">
+            <div class="px-6 py-4" style="border-bottom:1px solid var(--border)">
+                <h3 class="font-semibold" style="color:var(--text-strong)">Recent Users</h3>
             </div>
             @forelse($recentUsers as $user)
-            <div class="flex items-center gap-3 px-5 py-3.5 border-b border-gray-800 last:border-0">
+            <div class="flex items-center gap-3 px-5 py-3.5" style="border-bottom:1px solid var(--border)">
                 <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
                     {{ strtoupper(substr($user->name,0,1)) }}
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm text-white truncate">{{ $user->name }}</p>
-                    <p class="text-xs text-gray-500 truncate">{{ $user->email }}</p>
+                    <p class="text-sm truncate" style="color:var(--text-strong)">{{ $user->name }}</p>
+                    <p class="text-xs truncate" style="color:var(--text-soft)">{{ $user->email }}</p>
                 </div>
             </div>
             @empty
-            <p class="px-5 py-8 text-center text-gray-500 text-sm">No users yet.</p>
+            <p class="px-5 py-8 text-center text-sm" style="color:var(--text-soft)">No users yet.</p>
             @endforelse
         </div>
     </div>

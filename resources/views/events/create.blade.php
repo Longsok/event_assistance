@@ -10,8 +10,8 @@
             </svg>
             Back to Events
         </a>
-        <h2 class="text-2xl font-bold text-white">Create New Event</h2>
-        <p class="text-sm mt-1" style="color:#6b7280">Fill in the details — AI will suggest venues, vendors and budget for Phnom Penh.</p>
+        <h2 class="text-2xl font-bold" style="color:var(--text-strong)">Create New Event</h2>
+        <p class="text-sm mt-1" style="color:var(--text-soft)">Fill in the details — AI will suggest venues, vendors and budget for Phnom Penh.</p>
     </div>
 
     <form method="POST" action="{{ route('events.store') }}" class="space-y-6">
@@ -23,63 +23,63 @@
                 <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white" style="background:#4f46e5">1</div>
                 <span class="text-sm font-medium" style="color:#818cf8">Event Details</span>
             </div>
-            <div class="flex-1 h-px" style="background:rgba(255,255,255,.1)"></div>
+            <div class="flex-1 h-px" style="background:var(--border)"></div>
             <div class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" style="background:rgba(255,255,255,.08);color:#6b7280">2</div>
-                <span class="text-sm" style="color:#6b7280">AI Suggestions</span>
+                <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" style="background:var(--hover);color:var(--text-soft)">2</div>
+                <span class="text-sm" style="color:var(--text-soft)">AI Suggestions</span>
             </div>
         </div>
 
-        {{-- Shared input style via CSS --}}
+        {{-- Shared input style via CSS (now theme-aware) --}}
         <style>
             .dark-input {
                 width:100%;
-                background:rgba(255,255,255,.06);
-                border:1px solid rgba(255,255,255,.1);
+                background:var(--input-bg);
+                border:1px solid var(--input-border);
                 border-radius:12px;
                 padding:10px 14px;
-                color:white;
+                color:var(--text);
                 font-size:14px;
                 outline:none;
                 font-family:inherit;
                 transition:border-color .15s;
             }
             .dark-input:focus { border-color:rgba(99,102,241,.5); }
-            .dark-input::placeholder { color:#4b5563; }
+            .dark-input::placeholder { color:var(--text-soft); opacity:.7; }
             .dark-input option {
-                background:#0d1117;
-                color:white;
+                background:var(--panel);
+                color:var(--text);
             }
             .dark-label {
                 display:block;
                 font-size:13px;
                 font-weight:500;
-                color:#9ca3af;
+                color:var(--text-soft);
                 margin-bottom:6px;
             }
             .dark-card {
-                background:#0d1117;
-                border:1px solid rgba(255,255,255,.07);
+                background:var(--panel);
+                border:1px solid var(--border);
                 border-radius:16px;
                 padding:24px;
             }
             .dark-card h3 {
                 font-size:15px;
                 font-weight:600;
-                color:white;
+                color:var(--text-strong);
                 margin:0 0 20px;
             }
             .dark-radio-option {
-                border:1px solid rgba(255,255,255,.1);
+                border:1px solid var(--input-border);
                 border-radius:12px;
                 padding:10px 12px;
                 font-size:13px;
                 font-weight:500;
                 text-align:center;
-                color:#6b7280;
+                color:var(--text-soft);
                 cursor:pointer;
                 transition:all .15s;
-                background:rgba(255,255,255,.03);
+                background:var(--input-bg);
             }
             input[type=radio].sr-only:checked + .dark-radio-option {
                 border-color:#4f46e5;
@@ -106,11 +106,10 @@
                 <label class="dark-label">Event Type <span style="color:#f87171">*</span></label>
                 <select name="category_id" required
                         class="dark-input @error('category_id') !border-red-500 @enderror"
-                        style="background:#0d1117;color:white;cursor:pointer">
-                    <option value="" style="background:#0d1117;color:#6b7280">Select event type...</option>
+                        style="cursor:pointer">
+                    <option value="">Select event type...</option>
                     @foreach($categories as $cat)
                     <option value="{{ $cat->id }}"
-                            style="background:#0d1117;color:white"
                             {{ old('category_id') == $cat->id ? 'selected' : '' }}>
                         {{ $cat->name }}
                     </option>
@@ -124,15 +123,13 @@
                 <div>
                     <label class="dark-label">Start Date <span style="color:#f87171">*</span></label>
                     <input type="date" name="start_date" value="{{ old('start_date') }}" required
-                           class="dark-input @error('start_date') !border-red-500 @enderror"
-                           style="color-scheme:dark">
+                           class="dark-input @error('start_date') !border-red-500 @enderror">
                     @error('start_date')<p class="text-xs mt-1" style="color:#f87171">{{ $message }}</p>@enderror
                 </div>
                 <div>
                     <label class="dark-label">End Date <span style="color:#f87171">*</span></label>
                     <input type="date" name="end_date" value="{{ old('end_date') }}" required
-                           class="dark-input @error('end_date') !border-red-500 @enderror"
-                           style="color-scheme:dark">
+                           class="dark-input @error('end_date') !border-red-500 @enderror">
                     @error('end_date')<p class="text-xs mt-1" style="color:#f87171">{{ $message }}</p>@enderror
                 </div>
             </div>
@@ -141,13 +138,11 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="dark-label">Start Time</label>
-                    <input type="time" name="start_time" value="{{ old('start_time') }}"
-                           class="dark-input" style="color-scheme:dark">
+                    <input type="time" name="start_time" value="{{ old('start_time') }}" class="dark-input">
                 </div>
                 <div>
                     <label class="dark-label">End Time</label>
-                    <input type="time" name="end_time" value="{{ old('end_time') }}"
-                           class="dark-input" style="color-scheme:dark">
+                    <input type="time" name="end_time" value="{{ old('end_time') }}" class="dark-input">
                 </div>
             </div>
 
@@ -162,10 +157,10 @@
                 <div>
                     <label class="dark-label">
                         Total Budget (USD)
-                        <span style="color:#6b7280;font-weight:400"> — used for AI suggestions</span>
+                        <span style="color:var(--text-soft);font-weight:400"> — used for AI suggestions</span>
                     </label>
                     <div class="relative">
-                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style="color:#6b7280">$</span>
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style="color:var(--text-soft)">$</span>
                         <input type="number" name="total_budget" value="{{ old('total_budget') }}"
                                min="0" step="100" placeholder="e.g. 5000"
                                class="dark-input" style="padding-left:28px">
@@ -185,7 +180,7 @@
         <div class="dark-card space-y-5">
             <div>
                 <h3 style="margin-bottom:4px">Venue Preferences</h3>
-                <p class="text-xs" style="color:#6b7280">These help AI suggest the right venues in Phnom Penh</p>
+                <p class="text-xs" style="color:var(--text-soft)">These help AI suggest the right venues in Phnom Penh</p>
             </div>
 
             {{-- Venue Setting --}}
@@ -196,8 +191,7 @@
                     <label class="cursor-pointer">
                         <input type="radio" name="venue_type" value="{{ $val }}" class="sr-only peer"
                                {{ old('venue_type', 'indoor') === $val ? 'checked' : '' }}>
-                        <div class="dark-radio-option peer-checked:!border-indigo-500 peer-checked:!text-indigo-300"
-                             style="border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px;font-size:13px;font-weight:500;text-align:center;color:#6b7280;cursor:pointer;background:rgba(255,255,255,.03);transition:all .15s">
+                        <div class="dark-radio-option peer-checked:!border-indigo-500 peer-checked:!text-indigo-300">
                             {{ $label }}
                         </div>
                     </label>
@@ -213,8 +207,7 @@
                     <label class="cursor-pointer">
                         <input type="radio" name="style_pref" value="{{ $val }}" class="sr-only peer"
                                {{ old('style_pref', 'modern') === $val ? 'checked' : '' }}>
-                        <div class="peer-checked:!border-indigo-500 peer-checked:!text-indigo-300"
-                             style="border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px;font-size:13px;font-weight:500;text-align:center;color:#6b7280;cursor:pointer;background:rgba(255,255,255,.03);transition:all .15s">
+                        <div class="dark-radio-option peer-checked:!border-indigo-500 peer-checked:!text-indigo-300">
                             {{ $label }}
                         </div>
                     </label>
@@ -227,7 +220,7 @@
                 <div>
                     <label class="dark-label">
                         Venue Name
-                        <span style="color:#6b7280;font-weight:400"> — or let AI suggest</span>
+                        <span style="color:var(--text-soft);font-weight:400"> — or let AI suggest</span>
                     </label>
                     <input type="text" name="venue" value="{{ old('venue') }}"
                            placeholder="Leave blank for AI recommendations"
@@ -256,13 +249,13 @@
                            {{ old($toggle['name']) ? 'checked' : '' }}
                            class="sr-only peer">
                     <div class="w-10 h-6 rounded-full transition peer-checked:bg-indigo-600"
-                         style="background:rgba(255,255,255,.1)"></div>
+                         style="background:var(--input-bg)"></div>
                     <div class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition
                                 peer-checked:translate-x-4"></div>
                 </div>
                 <div>
-                    <p class="text-sm font-medium text-white">{{ $toggle['title'] }}</p>
-                    <p class="text-xs" style="color:#6b7280">{{ $toggle['desc'] }}</p>
+                    <p class="text-sm font-medium" style="color:var(--text-strong)">{{ $toggle['title'] }}</p>
+                    <p class="text-xs" style="color:var(--text-soft)">{{ $toggle['desc'] }}</p>
                 </div>
             </label>
             @endforeach
@@ -277,10 +270,10 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
             </svg>
-            Create Event & Get AI Recommendations
+            Create Event & Get Recommendations
         </button>
-        <p class="text-center text-xs" style="color:#4b5563">
-            AI will suggest real venues, caterers and decor companies in Phnom Penh based on your inputs.
+        <p class="text-center text-xs" style="color:var(--text-soft)">
+            The System will suggest real venues, caterers and decor companies in Phnom Penh based on your inputs.
         </p>
     </form>
 </div>

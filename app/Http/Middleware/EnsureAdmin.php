@@ -9,19 +9,15 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureAdmin
 {
-    public function handle(Request $request, Closure $next): Response
+   public function handle(Request $request, Closure $next): Response
     {
-        // Not logged in → go to ADMIN login (not organizer login)
-        if (!Auth::check()) {
+        if (! Auth::guard('admin')->check()) {
             return redirect()->route('admin.login')
                 ->with('status', 'Please log in to access the admin panel.');
         }
 
-        // Logged in but not admin → log out and send to admin login
-        if (!Auth::user()->hasRole('admin')) {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+        if (! Auth::guard('admin')->user()->hasRole('admin')) {
+            Auth::guard('admin')->logout();
             return redirect()->route('admin.login')
                 ->withErrors(['email' => 'You do not have admin access.']);
         }
