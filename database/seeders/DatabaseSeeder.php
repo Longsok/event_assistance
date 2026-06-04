@@ -50,30 +50,35 @@ class DatabaseSeeder extends Seeder
     $organizer->syncRoles([$organizerRole]);
 
     // ── 4. Task Groups ──
-    $taskGroups = [
-        'Planning & Administration',
-        'Catering & Food',
-        'Decoration & Setup',
-        'Music & Entertainment',
-        'Photography & Video',
-        'Guest Management',
-        'Transportation',
-        'Ceremony & Rituals',
-        'Outfits & Costumes',
-        'Hair & Makeup',
-        'Budget & Finance',
-        'Venue & Logistics',
-        'Technical & AV',
-        'Security & Safety',
-        'Marketing & Promotion',
-    ];
+$taskGroups = [
+    'Planning & Administration',
+    'Catering & Food',
+    'Decoration & Setup',
+    'Music & Entertainment',
+    'Photography & Video',
+    'Guest Management',
+    'Transportation',
+    'Ceremony & Rituals',
+    'Outfits & Costumes',
+    'Hair & Makeup',
+    'Budget & Finance',
+    'Venue & Logistics',
+    'Technical & AV',
+    'Security & Safety',
+    'Marketing & Promotion',
+];
 
-    foreach ($taskGroups as $i => $name) {
-        \App\Models\TaskGroup::firstOrCreate(
-            ['name' => $name],
-            ['sort_order' => $i + 1]
-        );
-    }
+foreach ($taskGroups as $i => $name) {
+    $slug = \Illuminate\Support\Str::slug($name);
+    \App\Models\TaskGroup::firstOrCreate(
+        ['slug' => $slug],
+        [
+            'name'       => $name,
+            'sort_order' => $i + 1,
+            'color'      => '#534AB7',
+        ]
+    );
+}
 
     $this->command->info('Seeding complete.');
     $this->command->table(
