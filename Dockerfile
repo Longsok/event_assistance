@@ -50,6 +50,10 @@ RUN npm install && npm run build
 # Set permissions
 RUN chmod -R 775 storage bootstrap/cache
 
+# Copy startup script
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
 EXPOSE 8000
 
-CMD php artisan migrate --force; php artisan db:seed --force; php artisan serve --host=0.0.0.0 --port=$PORT
+CMD ["/bin/sh", "/app/start.sh"]
