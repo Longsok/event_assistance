@@ -8,7 +8,7 @@
             <h2 class="text-2xl font-bold" style="color:var(--text-strong)">Event Planning Recommendations</h2>
             <p class="text-sm mt-1" style="color:var(--text-soft)">
                 Based on your {{ $event->category?->name ?? 'event' }} for
-                {{ $event->capacity }} guests in Phnom Penh
+{{ $event->capacity }} guests in {{ $eventData['province'] ?? $event->province ?? 'Cambodia' }}
             </p>
         </div>
         <form method="POST" action="{{ route('events.suggestions.skip', $event) }}">
@@ -225,7 +225,7 @@
     {{-- Planning tips --}}
     @if(!empty($suggestions['planning_tips']))
     <div class="rounded-2xl p-5 mb-8" style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2)">
-        <h3 class="font-semibold mb-3" style="color:#a5b4fc">💡 Planning Tips for Phnom Penh</h3>
+        <h3 class="font-semibold mb-3" style="color:#a5b4fc">💡 Planning Tips for {{ $eventData['province'] ?? $event->province ?? 'Cambodia' }}</h3>
         <ul class="space-y-2">
             @foreach($suggestions['planning_tips'] as $tip)
             <li class="flex items-start gap-2 text-sm" style="color:var(--text)">

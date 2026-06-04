@@ -11,7 +11,7 @@
             Back to Events
         </a>
         <h2 class="text-2xl font-bold" style="color:var(--text-strong)">Create New Event</h2>
-        <p class="text-sm mt-1" style="color:var(--text-soft)">Fill in the details — AI will suggest venues, vendors and budget for Phnom Penh.</p>
+        <p class="text-sm mt-1" style="color:var(--text-soft)">Fill in the details — Select your province — AI will suggest real local venues, vendors and budget.</p>
     </div>
 
     <form method="POST" action="{{ route('events.store') }}" class="space-y-6">
@@ -215,24 +215,44 @@
                 </div>
             </div>
 
-            {{-- Venue + Address --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label class="dark-label">
-                        Venue Name
-                        <span style="color:var(--text-soft);font-weight:400"> — or let AI suggest</span>
-                    </label>
-                    <input type="text" name="venue" value="{{ old('venue') }}"
-                           placeholder="Leave blank for AI recommendations"
-                           class="dark-input">
-                </div>
-                <div>
-                    <label class="dark-label">Address</label>
-                    <input type="text" name="address" value="{{ old('address') }}"
-                           placeholder="e.g. Phnom Penh, Cambodia"
-                           class="dark-input">
-                </div>
-            </div>
+            {{-- Venue + Address + Province --}}
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div>
+        <label class="dark-label">
+            Venue Name
+            <span style="color:var(--text-soft);font-weight:400"> — or let AI suggest</span>
+        </label>
+        <input type="text" name="venue" value="{{ old('venue') }}"
+               placeholder="Leave blank for AI recommendations"
+               class="dark-input">
+    </div>
+    <div>
+        <label class="dark-label">Address</label>
+        <input type="text" name="address" value="{{ old('address') }}"
+               placeholder="e.g. Street 123, City"
+               class="dark-input">
+    </div>
+</div>
+
+{{-- Province (required) --}}
+<div>
+    <label class="dark-label">
+        Province / City <span style="color:#f87171">*</span>
+        <span style="color:var(--text-soft);font-weight:400"> — AI suggests venues in this province</span>
+    </label>
+    <select name="province" required
+            class="dark-input @error('province') !border-red-500 @enderror"
+            style="cursor:pointer">
+        <option value="">Select province...</option>
+        @foreach(\App\Services\AiSuggestionService::$provinces as $prov)
+        <option value="{{ $prov }}"
+                {{ old('province') === $prov ? 'selected' : '' }}>
+            {{ $prov }}
+        </option>
+        @endforeach
+    </select>
+    @error('province')<p class="text-xs mt-1" style="color:#f87171">{{ $message }}</p>@enderror
+</div>
         </div>
 
         {{-- ── Event Settings ── --}}

@@ -32,13 +32,14 @@ class EventSuggestionController extends Controller
         }
 
         $eventData = [
-            'event_type'  => $event->category?->name ?? 'event',
-            'guest_count' => $event->capacity,
-            'budget'      => $budget,
-            'style'       => $prefs['style'] ?? 'modern',
-            'venue_pref'  => $event->venue_type ?? 'indoor',
-            'meal'        => $event->meal_provided ? 'buffet' : 'no meal',
-        ];
+    'event_type'  => $event->category?->name ?? 'event',
+    'guest_count' => $event->capacity,
+    'budget'      => $budget,
+    'style'       => $prefs['style'] ?? 'modern',
+    'venue_pref'  => $event->venue_type ?? 'indoor',
+    'meal'        => $event->meal_provided ? 'buffet' : 'no meal',
+    'province'    => $prefs['province'] ?? $event->province ?? 'Phnom Penh',
+];
 
         $suggestions = $this->aiService->generateSuggestions($eventData);
 

@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\SoftDeletes; 
-use Illuminate\Support\Str; 
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Model;
 
 class Event extends Model
@@ -11,28 +11,29 @@ class Event extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'user_id',
-        'category_id',
-        'title',
-        'slug',
-        'description',
-        'venue',
-        'address',
-        'start_date',
-        'end_date',
-        'start_time',
-        'end_time',
-        'capacity',
-        'venue_type',
-        'meal_provided',
-        'status',
-        'is_public',
-        'cover_image',
-        'invite_token',
-        'attendance_token',
-        'allow_self_registration',
-        'max_registrations',
-    ];
+    'user_id',
+    'category_id',
+    'title',
+    'slug',
+    'description',
+    'venue',
+    'address',
+    'province',
+    'start_date',
+    'end_date',
+    'start_time',
+    'end_time',
+    'capacity',
+    'venue_type',
+    'meal_provided',
+    'status',
+    'is_public',
+    'cover_image',
+    'invite_token',
+    'attendance_token',
+    'allow_self_registration',
+    'max_registrations',
+];
 
     protected $casts = [
         'start_date'              => 'date',

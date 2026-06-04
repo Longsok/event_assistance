@@ -49,6 +49,7 @@ class EventController extends Controller
             'end_time'      => 'nullable|string',
             'venue'         => 'nullable|string|max:255',
             'address'       => 'nullable|string|max:255',
+            'province' => 'required|string|max:100',
             'capacity'      => 'required|integer|min:1',
             'venue_type'    => 'required|in:indoor,outdoor,hybrid',
             'meal_provided' => 'boolean',
@@ -61,7 +62,7 @@ class EventController extends Controller
             ...$request->only([
                 'title', 'category_id', 'start_date', 'end_date',
                 'start_time', 'end_time', 'venue', 'address',
-                'capacity', 'venue_type', 'description',
+                'capacity', 'venue_type', 'description', 'province',
             ]),
             'user_id'          => auth()->id(),
             'meal_provided'    => $request->boolean('meal_provided'),
@@ -80,15 +81,17 @@ class EventController extends Controller
         $this->budgetEngine->generate($event, (float)($request->total_budget ?? 0));
 
         // Store preferences in session for AI suggestions page (live only — not in DB)
+        $province = $request->province ?? 'Phnom Penh';
         session(['event_prefs_' . $event->id => [
             'budget'     => (float)($request->total_budget ?? 0),
             'style'      => $request->style_pref ?? 'modern',
             'venue_pref' => $request->venue_type ?? 'indoor',
             'meal'       => $request->boolean('meal_provided') ? 'buffet' : 'no meal',
+            'province'   => $province,
         ]]);
 
         return redirect()->route('events.suggestions.show', $event)
-            ->with('success', 'Event created! Here are our AI recommendations for Phnom Penh.');
+            ->with('success', 'Event created! Here are our AI recommendations for ' . $province . '.');
     }
 
     public function show(Event $event)
@@ -127,6 +130,7 @@ class EventController extends Controller
             'end_date'      => 'required|date|after_or_equal:start_date',
             'capacity'      => 'required|integer|min:1',
             'venue_type'    => 'required|in:indoor,outdoor,hybrid',
+            'province'      => 'nullable|string|max:100',
             'status'        => 'nullable|in:draft,published,ongoing,completed,cancelled',
             'is_public'     => 'nullable|boolean',
             'meal_provided' => 'nullable|boolean',
@@ -136,7 +140,7 @@ class EventController extends Controller
             ...$request->only([
                 'title', 'category_id', 'start_date', 'end_date',
                 'start_time', 'end_time', 'venue', 'address',
-                'capacity', 'venue_type', 'description', 'status',
+                'capacity', 'venue_type', 'description', 'status', 'province',
             ]),
             'is_public'     => $request->boolean('is_public'),
             'meal_provided' => $request->boolean('meal_provided'),
