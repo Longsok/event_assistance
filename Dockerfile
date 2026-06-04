@@ -45,7 +45,7 @@ RUN COMPOSER_MEMORY_LIMIT=-1 composer install \
     --ignore-platform-reqs
 
 # Build frontend
-RUN npm ci && npm run build
+RUN npm install && npm run build
 
 # Set permissions
 RUN chmod -R 775 storage bootstrap/cache
