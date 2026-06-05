@@ -49,10 +49,15 @@ class SocialLoginController extends Controller
 
     public function handleFacebookCallback()
 {
-    $socialUser = Socialite::driver('facebook')
-        ->setHttpClient(new Client(['verify' => false]))
-        ->stateless()
-        ->user();
+    try {
+        $socialUser = Socialite::driver('facebook')
+            ->setHttpClient(new Client(['verify' => false]))
+            ->stateless()
+            ->user();
+    } catch (\Exception $e) {
+        return redirect()->route('login')
+            ->with('error', 'Facebook login failed. Please try again.');
+    }
 
     // Facebook does not always provide email — use facebook_id as fallback
     $email = $socialUser->getEmail()
