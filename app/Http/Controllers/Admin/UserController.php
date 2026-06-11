@@ -25,25 +25,25 @@ class UserController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
-            'password' => 'required|min:8|confirmed',
-            'role'     => 'required|in:admin,organizer',
-        ]);
+{
+    $request->validate([
+        'name'     => 'required|string|max:255',
+        'email'    => 'required|email|unique:users,email',
+        'password' => 'required|min:8|confirmed',
+        'role'     => 'required|in:admin,organizer',
+    ]);
 
-        $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+    $user = User::create([
+        'name'     => $request->name,
+        'email'    => $request->email,
+        'password' => Hash::make($request->password),
+    ]);
 
-        $user->assignRole($request->role);
+    $user->assignRole($request->role);
 
-        return redirect()->route('admin.users.index')
-            ->with('success', "User {$user->name} created as {$request->role}.");
-    }
+    return redirect()->route('admin.users.index')
+        ->with('success', "User {$user->name} created as {$request->role}.");
+}
 
     public function show(User $user)
     {

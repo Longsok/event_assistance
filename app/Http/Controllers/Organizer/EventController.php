@@ -175,4 +175,21 @@ class EventController extends Controller
     {
         abort_if($event->user_id !== auth()->id(), 403);
     }
+
+    public function cancel(Event $event)
+{
+    // Make sure organizer owns this event
+    if ($event->user_id !== auth()->id()) {
+        abort(403);
+    }
+
+    // Only allow cancelling if event is not already completed
+    if ($event->status === 'completed') {
+        return back()->with('error', 'Cannot cancel a completed event.');
+    }
+
+    $event->update(['status' => 'cancelled']);
+
+    return back()->with('success', 'Event has been cancelled.');
+}
 }

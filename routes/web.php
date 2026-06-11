@@ -116,6 +116,7 @@ Route::middleware(['auth', 'verified', 'organizer'])->group(function () {
     // Events
     Route::resource('events', EventController::class);
     Route::patch('events/{event}/status', [EventController::class, 'updateStatus'])->name('events.status');
+    Route::patch('events/{event}/cancel', [EventController::class, 'cancel'])->name('events.cancel');
 
     // Event Guests
     Route::get('events/{event}/guests',                      [EventGuestController::class, 'index'])->name('events.guests.index');

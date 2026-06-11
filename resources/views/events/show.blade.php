@@ -23,22 +23,39 @@
             </p>
         </div>
         <div class="flex items-center gap-3 flex-shrink-0 mt-1">
-            <span class="px-3 py-1 rounded-full text-xs font-semibold
-                {{ $event->status==='ongoing'   ? 'bg-emerald-900/40 text-emerald-400' :
-                   ($event->status==='completed'? 'bg-blue-900/40 text-blue-400' :
-                   ($event->status==='published'? 'bg-indigo-900/40 text-indigo-300' :
-                    'text-gray-400')) }}"
-                style="{{ $event->status==='draft' ? 'background:var(--hover)' : '' }}">
-                {{ ucfirst($event->status) }}
-            </span>
-            <a href="{{ route('events.edit', $event) }}"
-               class="px-4 py-2 text-sm font-medium rounded-xl transition"
-               style="background:var(--input-bg);color:var(--text-soft);border:1px solid var(--input-border)"
-               onmouseover="this.style.background='var(--hover)'"
-               onmouseout="this.style.background='var(--input-bg)'">
-                Edit
-            </a>
-        </div>
+    <span class="px-3 py-1 rounded-full text-xs font-semibold
+        {{ $event->status==='ongoing'    ? 'bg-emerald-900/40 text-emerald-400' :
+           ($event->status==='completed' ? 'bg-blue-900/40 text-blue-400' :
+           ($event->status==='cancelled' ? 'bg-red-900/40 text-red-400' :
+           ($event->status==='published' ? 'bg-indigo-900/40 text-indigo-300' :
+            'text-gray-400'))) }}"
+        style="{{ $event->status==='draft' ? 'background:var(--hover)' : '' }}">
+        {{ ucfirst($event->status) }}
+    </span>
+
+    <a href="{{ route('events.edit', $event) }}"
+       class="px-4 py-2 text-sm font-medium rounded-xl transition"
+       style="background:var(--input-bg);color:var(--text-soft);border:1px solid var(--input-border)"
+       onmouseover="this.style.background='var(--hover)'"
+       onmouseout="this.style.background='var(--input-bg)'">
+        Edit
+    </a>
+
+    @if($event->status !== 'cancelled' && $event->status !== 'completed')
+        <form action="{{ route('events.cancel', $event) }}" method="POST"
+              onsubmit="return confirm('Are you sure you want to cancel this event?')">
+            @csrf
+            @method('PATCH')
+            <button type="submit"
+                class="px-4 py-2 text-sm font-medium rounded-xl transition"
+                style="background:rgba(220,38,38,0.15);color:#f87171;border:1px solid rgba(220,38,38,0.3)"
+                onmouseover="this.style.background='rgba(220,38,38,0.25)'"
+                onmouseout="this.style.background='rgba(220,38,38,0.15)'">
+                Cancel Event
+            </button>
+        </form>
+    @endif
+</div>
     </div>
 
     {{-- Tabs --}}
